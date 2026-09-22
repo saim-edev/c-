@@ -1,0 +1,8 @@
+# Normalise line endings so the repo is consistent regardless of OS.
+# Without this, git warns "LF will be replaced by CRLF" on every add on Windows.
+* text=auto eol=lf
+
+# Binary files must never be touched.
+*.png binary
+*.jpg binary
+*.svg text eol=lf

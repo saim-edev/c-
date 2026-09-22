@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- TargetFramework / Nullable / ImplicitUsings are inherited from
+       ..\..\Directory.Build.props. Only project-specific things live here. -->
+  <PropertyGroup>
+    <RootNamespace>Esports.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+  </ItemGroup>
+
+</Project>

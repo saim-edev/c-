@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Notice what is NOT here: TargetFramework, Nullable, ImplicitUsings.
+    All three are inherited from ..\..\Directory.Build.props.
+    The only thing this project needs to say for itself is that it produces
+    an executable (Exe) rather than a library (the default).
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Esports.Console</RootNamespace>
+  </PropertyGroup>
+
+</Project>

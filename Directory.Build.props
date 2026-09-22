@@ -1,0 +1,25 @@
+<Project>
+
+  <!--
+    Directory.Build.props is picked up automatically by MSBuild for EVERY project
+    at or below this folder. Setting these here means each .csproj inherits them
+    instead of each one carrying its own copy that can drift out of sync.
+  -->
+  <PropertyGroup>
+    <!-- Target Framework Moniker. This is the framework we BUILD FOR, and it is a
+         different knob from the SDK version pinned in global.json. -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!-- Turns on nullable reference types: `string` means "not null", `string?`
+         means "may be null". Compile-time only - the runtime knows nothing about it. -->
+    <Nullable>enable</Nullable>
+
+    <!-- Injects the common `using` directives (System, System.Linq, ...) so files
+         don't repeat them. The generated file lives in obj/*.GlobalUsings.g.cs. -->
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Off deliberately. While learning, a warning should be readable, not fatal. -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

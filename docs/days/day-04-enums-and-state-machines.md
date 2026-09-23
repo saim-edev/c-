@@ -154,6 +154,48 @@ refused : record a result before starting -> Cannot record a result for a match 
 That last line is a whole bug class gone. Not documented, not "please don't" —
 **impossible**.
 
+### Why four bools fail, drawn
+
+```
+  FOUR BOOLS                          ONE ENUM
+  ==========                          ========
+
+  IsScheduled   true/false            State = one of:
+  IsInProgress  true/false                    Scheduled
+  IsCompleted   true/false                    InProgress
+  IsForfeited   true/false                    Completed
+                                              Forfeited
+  2 x 2 x 2 x 2 = 16 combinations             Cancelled
+
+  Legal:      4                       Legal:      5
+  Nonsense:  12   <-- nothing          Nonsense:  0   <-- cannot be
+                      stops these                        expressed
+    IsCompleted + IsInProgress
+    IsForfeited + IsScheduled
+    all four false
+    all four true ...
+```
+
+An enum is **exactly as big as the list you wrote**. Bools multiply. Strings are
+infinite.
+
+### The whole file
+
+[MatchState.cs](../../src/Esports.Console/MatchState.cs):
+
+```csharp
+public enum MatchState
+{
+    Scheduled,    // fixture exists, nobody has played yet
+    InProgress,   // currently being played
+    Completed,    // played to a finish; there is a score
+    Forfeited,    // one team did not show up; no real score
+    Cancelled     // called off; never played, never will be
+}
+```
+
+That is the entire type. Five names, one line each.
+
 ### The guard pattern, repeated
 
 Every transition method has the same shape — [Match.cs:58](../../src/Esports.Console/Match.cs#L58):
@@ -172,6 +214,42 @@ public void Start()
 ```
 
 Check the current state, refuse if it's wrong, otherwise move. One arrow per method.
+
+Here is every transition side by side, from
+[Match.cs](../../src/Esports.Console/Match.cs):
+
+```csharp
+public void Start()            // Scheduled -> InProgress
+{
+    if (State != MatchState.Scheduled) { throw ...; }
+    State = MatchState.InProgress;
+}
+
+public void RecordResult(int homeScore, int awayScore)   // InProgress -> Completed
+{
+    if (State != MatchState.InProgress) { throw ...; }
+    Score = MatchScore.Create(homeScore, awayScore);
+    State = MatchState.Completed;
+}
+
+public void Forfeit(Team winner)    // Scheduled or InProgress -> Forfeited
+{
+    if (State != MatchState.Scheduled && State != MatchState.InProgress) { throw ...; }
+    if (!ReferenceEquals(winner, HomeTeam)
+        && !ReferenceEquals(winner, AwayTeam)) { throw ...; }
+    ForfeitWinner = winner;
+    State = MatchState.Forfeited;
+}
+
+public void Cancel()           // Scheduled -> Cancelled
+{
+    if (State != MatchState.Scheduled) { throw ...; }
+    State = MatchState.Cancelled;
+}
+```
+
+Read the `if` at the top of each one and you have read the diagram above. **The
+diagram is not documentation of the code — the code is the diagram.**
 
 ### The switch expression
 

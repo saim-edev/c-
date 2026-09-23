@@ -49,9 +49,83 @@ How we got here, and why each step was forced by the one before it:
 8. **Which broke object-initializer syntax**, because that writes from outside. So the
    values had to be supplied at creation instead: a **constructor**.
 
+### The shape of the change
+
+```
+BEFORE - loose variables                AFTER - one class
+========================                =================
+
+  player1Tag     "Faker"                  faker  ──► ┌──────────────────┐
+  player1Rating  1847                                │ GamerTag  Faker  │
+  player1WinRate 0.672                               │ Rating    1847   │
+  player1IsActive true                               │ WinRate   0.672  │
+                                                     │ IsActive  true   │
+  player2Tag     "Chovy"                             ├──────────────────┤
+  player2Rating  1792                                │ RecordWin()      │
+  player2WinRate 0.641                               │ RecordLoss()     │
+  player2IsActive true                               │ Deactivate()     │
+                                                     └──────────────────┘
+  8 variables.
+  Related only by a naming habit.           chovy  ──► ┌──────────────────┐
+  Cannot pass "a player" anywhere.                     │ GamerTag  Chovy  │
+                                                       │ ...              │
+                                                       └──────────────────┘
+
+                                            2 variables. The compiler knows
+                                            those values belong together.
+```
+
 ---
 
 ## 3. How it works behind the scenes
+
+### The code, in full
+
+[Player.cs](../../src/Esports.Console/Player.cs) — this is the whole file, minus
+comments:
+
+```csharp
+public class Player
+{
+    // `private set` = readable anywhere, writable ONLY inside this class
+    public string GamerTag { get; private set; }
+    public int Rating { get; private set; }
+    public double WinRate { get; private set; }
+    public bool IsActive { get; private set; }
+
+    // Runs on `new Player(...)`. Because the setters are private, values
+    // cannot be assigned from outside - they must come through here.
+    public Player(string gamerTag, int rating)
+    {
+        GamerTag = gamerTag;
+        Rating = rating;
+        WinRate = 0.0;
+        IsActive = true;
+    }
+
+    public void RecordWin()  { Rating += 25; }
+    public void RecordLoss() { Rating -= 25; }
+    public void Deactivate() { IsActive = false; }
+}
+```
+
+And how it is used, from [Program.cs](../../src/Esports.Console/Program.cs):
+
+```csharp
+Player faker = new Player("Faker", 1847);
+Player chovy = new Player("Chovy", 1792);
+
+faker.RecordWin();
+chovy.RecordLoss();
+
+Console.WriteLine($"{faker.GamerTag} - {faker.Rating}");
+Console.WriteLine($"{chovy.GamerTag} - {chovy.Rating}");
+```
+
+```
+Faker - 1872
+Chovy - 1767
+```
 
 ### A method receives the object as a hidden first argument
 
@@ -75,6 +149,30 @@ Player.RecordWin(faker);  // what it actually means
 **This is the single mechanic the whole of OOP is built on.** A class is a record,
 plus functions that take that record as an implicit first argument. C# just moves
 the first parameter to the left of the dot and hides it.
+
+```
+  What you write            What it means
+
+  faker.RecordWin()   ──►   Player.RecordWin(faker)
+  ^^^^^                                    ^^^^^
+  moved to the left                  a normal first argument
+  of the dot, and hidden
+
+  There is ONE copy of the RecordWin code, shared by every
+  Player. The object is what tells it which data to act on.
+
+       ┌──────────────┐   ┌──────────────┐
+       │ faker        │   │ chovy        │      the DATA differs
+       │ Rating 1847  │   │ Rating 1792  │      per object
+       └──────┬───────┘   └──────┬───────┘
+              │                  │
+              └────────┬─────────┘
+                       ▼
+              ┌──────────────────┐
+              │ RecordWin()      │             the CODE exists once
+              │   Rating += 25   │
+              └──────────────────┘
+```
 
 ### `private set` verified, not assumed
 

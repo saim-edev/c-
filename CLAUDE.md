@@ -1,8 +1,21 @@
 # CLAUDE.md — how to teach in this repo
 
 This repo is a 25-day C#/.NET curriculum for **Saim**, who comes from functional
-programming, has never written class-based code, and does not know JavaScript or React.
-He is learning NestJS alongside this, so NestJS comparisons land well.
+programming and has never written class-based code.
+
+**What he knows, and which analogies therefore work:**
+
+| | Level | Compare C# to it? |
+|---|---|---|
+| Functional programming | strong | **Always. The one that reliably clicks.** |
+| JavaScript / React | knows both | Yes |
+| NestJS | learning, not solid | **No.** Explaining C# via NestJS means explaining two unfamiliar things at once. |
+
+> "nestjs im learning but i havent fully learnt so things wont click because that is
+> not fully learnt as well. functional programming comparison will click though"
+
+Mention NestJS only to *answer a question he asks about it*, never as the vehicle for
+teaching something new. Since he knows React, **Days 17–18 need no JavaScript primer**.
 
 The teaching approach below was arrived at by correction during Days 1–4. It works.
 **Do not drift from it.**
@@ -97,6 +110,32 @@ mechanism, what it bought.
 - Questions he asked during the session go in the note too, answered. If he asked it
   once he will want it again.
 
+**Draw diagrams.** ASCII diagrams in fenced blocks, wherever a shape is easier to see
+than to read. He asked for these explicitly. Good candidates: memory layouts (what a
+variable holds vs what is on the heap), before/after structure, state machines, call
+flow, which piece calls which. One diagram beats three paragraphs. Keep them narrow
+enough not to wrap.
+
+```
+ p1 [ →──┐              p2 [ →──┐
+         ▼                      ▼
+   ┌──────────┐           ┌──────────┐
+   │ Faker    │           │ Faker    │     two objects
+   │ 1847     │           │ 1847     │     two addresses
+   └──────────┘           └──────────┘     p1 == p2  →  False
+```
+
+**The note must be learnable on its own.** He will re-read these without the chat
+beside them, so a note may never depend on something only said in conversation. That
+means, concretely:
+
+- **Quote the code in the note.** Do not write "see `Team.cs`" — paste the relevant
+  lines into a fenced block *and* link them:
+  `[Team.cs:41](../../src/Esports.Console/Team.cs#L41)`.
+- Paths in day notes are relative: `../../src/...`, since the note lives in `docs/days/`.
+- Name the file every snippet comes from, right above it.
+- If a term is used, it is either explained in the note or linked to `GLOSSARY.md`.
+
 **Two kinds of file, different jobs:**
 
 - `docs/days/day-NN-*.md` — the journal. What happened, in order, on one day.
@@ -138,9 +177,11 @@ The leaks that have mattered so far:
 
 ---
 
-## NestJS comparisons
+## NestJS — answering questions only
 
-He is learning NestJS in parallel, so this mapping is useful and he has asked about it:
+He asks about NestJS sometimes. Answer with this mapping, but **never teach a new C#
+idea by way of NestJS** — he has not learnt it solidly enough for it to explain
+anything.
 
 | NestJS | C# equivalent | Arrives |
 |---|---|---|
@@ -153,6 +194,10 @@ He is learning NestJS in parallel, so this mapping is useful and he has asked ab
 Worth naming when it comes up: most NestJS code puts logic in services and leaves
 entities as dumb data bags. This project does the opposite — rules live with the data
 they protect. Both styles exist in C#; he meets the service style on Day 14.
+
+**JavaScript/React comparisons are fair game** and often sharper, since he knows both:
+`this.` being mandatory in TS but optional in C#; `.map`/`.filter`/`.reduce` being
+LINQ; `Promise` being `Task`; React state being immutable-update just like `with`.
 
 ---
 

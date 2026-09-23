@@ -201,6 +201,47 @@ declaration. From it the compiler writes:
 
 Compare with `Player` — 48 hand-written lines, and it still prints as just `Player`.
 
+```
+  ONE LINE OF SOURCE                    WHAT THE COMPILER WRITES
+  ==================                    ========================
+
+  public record MatchScore(             constructor(int, int)
+      int Home,                         Home  { get; init; }
+      int Away);                        Away  { get; init; }
+                                        operator ==   (compares CONTENTS)
+                                        operator !=
+                                        Equals(object)
+                                        Equals(MatchScore)
+                                        GetHashCode()
+                                        ToString()
+                                        Deconstruct(out int, out int)
+                                        <Clone>$        (powers `with`)
+
+  public class Player { ... }           nothing. 48 hand-written lines,
+                                        and == still compares addresses.
+```
+
+### The choice, as a decision
+
+```
+              Does this thing have an identity that
+              survives its values changing?
+                          │
+             ┌────────────┴────────────┐
+            YES                        NO
+             │                          │
+             ▼                          ▼
+          class                      record
+             │                          │
+   Player - Faker is still     MatchScore - any 3-1 is
+   Faker after a rating        any other 3-1. Nothing
+   change. Two people can      else to it.
+   share stats and still
+   be two people.
+             │                          │
+   == compares ADDRESSES       == compares CONTENTS
+```
+
 ### `with` makes a copy, it does not mutate
 
 ```csharp
@@ -233,6 +274,75 @@ can still arrive at runtime from an older library, from JSON, from a database.
 So it's a very good linter, **not a proof**. Treat it as a strong safety net whose
 confidence is only as good as the code compiled with the feature switched on.
 
+### The full `Match` code
+
+[Match.cs](../../src/Esports.Console/Match.cs) as it stood at the end of Day 3 (Day 4
+replaces the `HasBeenPlayed` part with a proper state machine):
+
+```csharp
+public class Match
+{
+    // These hold ARROWS to Team objects, not copies.
+    public Team HomeTeam { get; private set; }
+    public Team AwayTeam { get; private set; }
+
+    // `?` = this might be nothing. An unplayed match has no score, and
+    // 0-0 would be a lie because that is a real result - a draw.
+    public MatchScore? Score { get; private set; }
+
+    public Match(Team homeTeam, Team awayTeam)
+    {
+        // Guard in the constructor: a nonsensical Match can never exist.
+        if (ReferenceEquals(homeTeam, awayTeam))
+        {
+            throw new ArgumentException("A team cannot play itself");
+        }
+
+        HomeTeam = homeTeam;
+        AwayTeam = awayTeam;
+        Score = null;          // explicitly: not played yet
+    }
+
+    public bool HasBeenPlayed => Score != null;
+
+    public void RecordResult(int homeScore, int awayScore)
+    {
+        if (HasBeenPlayed)
+        {
+            throw new InvalidOperationException("already finished");
+        }
+
+        // Create(), not `new` - it rejects negative numbers.
+        Score = MatchScore.Create(homeScore, awayScore);
+    }
+
+    // Team? because there may be no winner: not played, or a draw.
+    public Team? Winner
+    {
+        get
+        {
+            if (Score == null || Score.IsDraw) { return null; }
+
+            return Score.HomeWon ? HomeTeam : AwayTeam;
+        }
+    }
+}
+```
+
+```
+T1 vs GEN (not played)
+Played? False
+Winner: nobody yet
+
+T1 3-1 GEN
+Played? True
+Winner: T1
+Margin: 2
+
+refused: T1 vs GEN already finished 3-1
+refused: A team cannot play itself
+```
+
 ### `?.` and `??` read left to right
 
 ```csharp
@@ -242,6 +352,22 @@ final.Winner?.Name ?? "nobody yet"
 - `final.Winner` → might be a `Team`, might be nothing
 - `?.Name` → *if* there's a team, take its name; **if not, stop here, produce nothing**
 - `?? "nobody yet"` → if what came out was nothing, use this instead
+
+```
+   final.Winner  ?.Name   ??  "nobody yet"
+        │           │           │
+        ▼           │           │
+   ┌─────────┐      │           │
+   │ a Team? │      │           │
+   └────┬────┘      │           │
+        │           ▼           │
+    has a team ──► .Name ──► "T1"          done, "T1"
+        │
+    is nothing ──► SKIPPED ──► nothing ──► "nobody yet"
+                   (short-circuits:
+                    never touches .Name,
+                    so no crash)
+```
 
 ---
 

@@ -93,6 +93,119 @@ and answered `True`.
 change it, so aliasing can never hurt you. This is precisely why strings are immutable
 in most languages.
 
+### What a `List<T>` actually is
+
+Not a linked list. A **growable array** — one contiguous block of memory.
+
+```
+  List<Player> with 3 items, room for 4:
+
+   _players ──► ┌─────┬─────┬─────┬─────┐
+                │  0  │  1  │  2  │     │   Capacity = 4
+                └──┬──┴──┬──┴──┬──┴─────┘   Count    = 3
+                   ▼     ▼     ▼
+                 Faker  Guma  Keria        (each slot holds an ARROW
+                                            to a Player on the heap)
+
+  Add a 5th item and there is no room, so:
+    1. allocate a NEW array of double the size
+    2. copy every element across
+    3. throw the old array away
+
+                ┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐
+                │  0  │  1  │  2  │  3  │  4  │     │     │     │
+                └─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
+```
+
+That is why the performance table below is the opposite of a linked list's: jumping
+to item #5000 is one calculation, but inserting at the front means shifting everything.
+
+### The code, in full
+
+[Team.cs](../../src/Esports.Console/Team.cs) — the parts that matter:
+
+```csharp
+public class Team
+{
+    public string Name { get; private set; }
+    public string Tag { get; private set; }
+
+    // `private`, NOT `private set`. See section 4 for why that distinction
+    // is the difference between a rule and a suggestion.
+    private List<Player> _players = new List<Player>();
+
+    public Team(string name, string tag)
+    {
+        Name = name;
+        Tag = tag;
+    }
+
+    // The roster limit lives HERE, so it cannot be bypassed.
+    public void AddPlayer(Player player)
+    {
+        if (_players.Count >= 5)
+        {
+            Console.WriteLine($"  [rejected] {Tag} roster is full");
+            return;
+        }
+
+        _players.Add(player);
+    }
+
+    // A computed property: no stored value, runs on every read.
+    public int PlayerCount
+    {
+        get { return _players.Count; }
+    }
+
+    public double AverageRating
+    {
+        get
+        {
+            if (_players.Count == 0) { return 0; }
+
+            int total = 0;
+
+            // foreach walks every item; `player` is the current one.
+            foreach (Player player in _players)
+            {
+                total = total + player.Rating;
+            }
+
+            // (double) FIRST. Without it this is integer division and
+            // 9031 / 5 silently gives 1806 instead of 1806.2.
+            return (double)total / _players.Count;
+        }
+    }
+}
+```
+
+Used from [Program.cs](../../src/Esports.Console/Program.cs):
+
+```csharp
+Team t1 = new Team("T1", "T1");
+t1.AddPlayer(new Player("Faker", 1847));
+t1.AddPlayer(new Player("Gumayusi", 1791));
+t1.AddPlayer(new Player("Keria", 1823));
+t1.AddPlayer(new Player("Oner", 1768));
+t1.AddPlayer(new Player("Zeus", 1802));
+
+Console.WriteLine($"{t1.Name} has {t1.PlayerCount} players");
+Console.WriteLine($"Average rating: {t1.AverageRating}");
+
+t1.AddPlayer(new Player("Bench", 1500));   // the 6th
+Console.WriteLine($"{t1.Name} still has {t1.PlayerCount} players");
+```
+
+```
+T1 has 5 players
+Average rating: 1806.2
+
+Trying to add a 6th player:
+  [rejected] T1 roster is full - cannot add Bench
+T1 still has 5 players
+```
+
 ### A computed property runs code on every read
 
 [Team.cs:41](../../src/Esports.Console/Team.cs#L41):
@@ -131,6 +244,21 @@ change your object. A method taking an `int` cannot.
 ```csharp
 void Boost(int rating) { rating += 25; }   // caller's value unchanged
 void Boost(Player p)   { p.RecordWin(); }  // caller's player IS changed
+```
+
+```
+  Boost(score)  where score is an int          Boost(faker) where faker is a Player
+
+   caller   [ 100 ]                              caller  [ →──┐
+               │ copies the VALUE                            │  copies the ARROW
+               ▼                                             ▼
+   method   [ 100 ] ──► 125                      method  [ →──┤
+                                                             │
+   caller still has 100.                                     ▼
+   Two separate numbers.                              ┌────────────┐
+                                                      │ Rating 1872│
+                                                      └────────────┘
+                                                   ONE player. Caller sees the change.
 ```
 
 ---

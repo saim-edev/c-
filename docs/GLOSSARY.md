@@ -75,9 +75,11 @@ type copies the data; copying a reference type copies the address.
 `MatchScore.Create(...)`, never `someScore.Create(...)`.
 
 **Enum** — a fixed, named set of options that becomes a new type. Exactly as many
-values as you listed, all known to the compiler. **Not a sum type**: carries no
-payload, is not exhaustiveness-checked, and is an `int` underneath, so `(MyEnum)99`
-compiles and runs.
+values as you listed, all known to the compiler. **Not a sum type**: carries no payload,
+and is an `int` underneath, so `(MyEnum)99` compiles and runs. Exhaustiveness is
+partial — a `switch` without a `_` arm warns (`CS8509`/`CS8524`) and throws at runtime,
+but adding `_` silences the warning, so you trade missing-case detection for safety
+against cast values.
 
 **State machine** — a set of states plus rules about which moves between them are
 allowed. `Match` is one: `Scheduled → InProgress → Completed`, with forfeit and cancel

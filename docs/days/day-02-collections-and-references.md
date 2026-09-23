@@ -208,7 +208,7 @@ T1 still has 5 players
 
 ### A computed property runs code on every read
 
-[Team.cs:41](../../src/Esports.Console/Team.cs#L41):
+[Team.cs:42](../../src/Esports.Console/Team.cs#L42):
 
 ```csharp
 public int PlayerCount
@@ -322,7 +322,7 @@ accumulator you mutate. `ReferenceEquals` is physical equality — `==` in OCaml
 
 ## 8. Traps and gotchas
 
-- **Integer division silently truncates.** [Team.cs:70](../../src/Esports.Console/Team.cs#L70):
+- **Integer division silently truncates.** [Team.cs:66](../../src/Esports.Console/Team.cs#L66):
   ```csharp
   return (double)total / _players.Count;   // 1806.2
   return total / _players.Count;           // 1806  ← wrong, and SILENT

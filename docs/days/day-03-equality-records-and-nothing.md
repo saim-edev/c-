@@ -389,9 +389,9 @@ single most valuable habit from today.
 
 | Now impossible | Enforced at |
 |---|---|
-| A match where a team plays itself | [Match.cs:29](../../src/Esports.Console/Match.cs#L29) — constructor |
-| Recording a result twice | [Match.cs:46](../../src/Esports.Console/Match.cs#L46) — `RecordResult` |
-| A negative score | [MatchScore.cs:31](../../src/Esports.Console/MatchScore.cs#L31) — `Create` |
+| A match where a team plays itself | [Match.cs](../../src/Esports.Console/Match.cs) — constructor |
+| Recording a result twice | [Match.cs](../../src/Esports.Console/Match.cs) — `RecordResult` |
+| A negative score | [MatchScore.cs:30](../../src/Esports.Console/MatchScore.cs#L30) — `Create` |
 
 ```
 refused: T1 vs GEN already finished 3-1

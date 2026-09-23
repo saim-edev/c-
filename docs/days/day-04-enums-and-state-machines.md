@@ -198,7 +198,7 @@ That is the entire type. Five names, one line each.
 
 ### The guard pattern, repeated
 
-Every transition method has the same shape — [Match.cs:58](../../src/Esports.Console/Match.cs#L58):
+Every transition method has the same shape — [Match.cs:55](../../src/Esports.Console/Match.cs#L55):
 
 ```csharp
 public void Start()
@@ -253,7 +253,7 @@ diagram is not documentation of the code — the code is the diagram.**
 
 ### The switch expression
 
-[Match.cs:136](../../src/Esports.Console/Match.cs#L136):
+[Match.cs:139](../../src/Esports.Console/Match.cs#L139):
 
 ```csharp
 string detail = State switch
@@ -309,15 +309,68 @@ useful.
 **Where it leaks — three ways, all worth knowing:**
 
 **1. No payload.** `MatchState.Completed` cannot carry the score. That's why
-[Match.cs:21](../../src/Esports.Console/Match.cs#L21) still needs a separate `Score?`
+[Match.cs:20](../../src/Esports.Console/Match.cs#L20) still needs a separate `Score?`
 field, and `Forfeited` needs its own `ForfeitWinner?`. In your world the state *would*
 carry its data and the two could never disagree. Here they sit alongside each other
 and keeping them consistent is your job.
 
-**2. No exhaustiveness checking.** Delete an arm from that `switch` and it still
-compiles. Add a sixth state to the enum and nothing warns you that switches elsewhere
-don't handle it. The `_` arm is doing real work — without it, a missing case throws at
-runtime instead of failing at build time.
+**2. Exhaustiveness checking exists, but you have to give it up to be safe.** This is
+subtler than "there is none", and the real behaviour is worth knowing exactly. Three
+cases, all verified by building them:
+
+```csharp
+// (a) one arm missing, no `_`
+string r = s switch { Scheduled => "a", InProgress => "b",
+                      Completed => "c", Forfeited => "d" };
+```
+```
+warning CS8509: The switch expression does not handle all possible values of its
+input type (it is not exhaustive). For example, the pattern 'MatchState.Cancelled'
+is not covered.
+
+...and at runtime:
+System.Runtime.CompilerServices.SwitchExpressionException:
+Non-exhaustive switch expression failed to match its input.
+```
+
+```csharp
+// (b) ALL five named arms, still no `_`
+string r = s switch { Scheduled => "a", InProgress => "b", Completed => "c",
+                      Forfeited => "d", Cancelled => "e" };
+```
+```
+warning CS8524: The switch expression does not handle some values of its input
+type (it is not exhaustive) involving an unnamed enum value. For example, the
+pattern '(MatchState)5' is not covered.
+```
+
+The compiler refuses to call it exhaustive **precisely because of the `(MatchState)99`
+problem in point 3.**
+
+```csharp
+// (c) all five arms PLUS `_`
+```
+```
+no warning at all
+```
+
+**So C# forces a choice between two protections:**
+
+```
+   WITHOUT `_`                          WITH `_`
+   ═══════════                          ════════
+   ✓ warns about a missing case         ✗ missing case falls silently
+                                          into the catch-all
+   ✗ throws at runtime on an            ✓ handles a cast value safely
+     unnamed value from a DB/JSON
+
+   You cannot have both.
+```
+
+The `_` arm you need to survive a value cast in from a database is the same thing that
+permanently silences the missing-case warning. **After adding a sixth enum value,
+finding every switch that should handle it is a manual search.** That is the real cost
+compared to a language where the compiler simply tells you.
 
 **3. It's an `int` underneath.** This compiles and runs:
 
@@ -456,7 +509,7 @@ you barely see `this.` in real C#.
    text", so `"inprogress"` sails through and fails at runtime.
 
 3. **Q:** What stops a result being recorded on a match that never started?
-   **A:** [`RecordResult`](../../src/Esports.Console/Match.cs#L69) throws unless
+   **A:** [`RecordResult`](../../src/Esports.Console/Match.cs#L66) throws unless
    `State == MatchState.InProgress`.
 
 4. **Q:** `(MatchState)99` compiles and prints `99`. What does that tell you about what
@@ -466,7 +519,11 @@ you barely see `this.` in real C#.
 
 5. **Q:** You add a sixth state to the enum. What warns you that existing `switch`
    expressions don't handle it?
-   **A:** Nothing. C# enums are not exhaustiveness-checked. You find them yourself.
+   **A:** It depends, and this is the subtle part. A switch **without** a `_` arm warns
+   (`CS8509`) and throws at runtime if it hits the unhandled value. A switch **with** a
+   `_` arm gives no warning at all — the new state silently falls into the catch-all.
+   Since you need `_` to survive values cast in from a database, in practice you get no
+   warning and must find the switches yourself.
 
 6. **Q:** Why does `Completed` need a separate `Score?` field?
    **A:** A C# enum carries no payload. The state and its data are stored separately,

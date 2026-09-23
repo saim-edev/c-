@@ -1,5 +1,25 @@
 # Index — 25 Days
 
+**Start here if you are lost:** [THE-BIG-PICTURE.md](THE-BIG-PICTURE.md) — how every
+piece built so far fits together, as one flow.
+
+## Reference files (read these, not the day notes, when you need to look something up)
+
+| File | What it covers |
+|---|---|
+| [THE-BIG-PICTURE](THE-BIG-PICTURE.md) | the map — how it all joins up, and where it is going |
+| [thinking-like-a-backend-dev](concepts/thinking-like-a-backend-dev.md) | the craft: file order, reading a repo, what seniors notice |
+| [memory-and-references](concepts/memory-and-references.md) | what a variable holds; aliasing |
+| [collections](concepts/collections.md) | `List<T>`, `foreach`, choosing a collection |
+| [classes-vs-records](concepts/classes-vs-records.md) | identity or value? |
+| [nullability-and-guards](concepts/nullability-and-guards.md) | saying "nothing"; refusing invalid objects |
+| [enums-and-state-machines](concepts/enums-and-state-machines.md) | modelling a lifecycle |
+| [debugging](concepts/debugging.md) | the bug log and the method |
+| [GLOSSARY](GLOSSARY.md) · [CHEATSHEET](CHEATSHEET.md) · [DECISIONS](DECISIONS.md) | terms · C# vs functional · why X not Y |
+
+## The days
+
+
 One row per day. Filled in as each day completes.
 
 | Day | Title | Doc | Tag | Concepts touched |

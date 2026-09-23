@@ -17,6 +17,29 @@ programming and has never written class-based code.
 Mention NestJS only to *answer a question he asks about it*, never as the vehicle for
 teaching something new. Since he knows React, **Days 17–18 need no JavaScript primer**.
 
+## The actual goal
+
+**Not "learn C#". Become a backend developer with foundations strong enough to learn
+anything else later, and who thinks like one.**
+
+C# is the vehicle. Every topic must also answer the questions a developer needs:
+
+- **Why does this exist?** What was the world like before it, and what broke?
+- **Why is it used here?** What made it the right call for *this* problem?
+- **Why is the other thing NOT used?** The rejected option is usually what he would
+  have reached for. Naming why it fails is the lesson.
+- **Where does it sit in the whole?** Which piece calls it, which piece it calls.
+
+And alongside the code, the craft:
+
+- **In what order do you write things**, and why that order. First this file, then this
+  one, because the second needs the first to exist.
+- **How do you find your way around a repo** you didn't write.
+- **How does a senior think while building?** What they check before writing, what they
+  refuse to add yet, what they leave a note about, what smells wrong to them and why.
+
+These are not asides. They go in the notes, every time.
+
 The teaching approach below was arrived at by correction during Days 1–4. It works.
 **Do not drift from it.**
 
@@ -63,7 +86,7 @@ option is often what he would have reached for, so naming its failure is the les
   (SDK/runtime/CLR/BCL/IL/JIT/apphost/pdb) is what broke Day 1.
 - **Never open with a definition.** Open with the problem or the flow.
 - **No jargon without unpacking it in the same breath.**
-- **Always cite code as a clickable link**: `[Player.cs:23](src/Esports.Console/Player.cs#L23)`.
+- **Always cite code as a clickable link**: `[Player.cs:35](src/Esports.Console/Player.cs#L35)`.
   Never "the method above" or a bare filename.
 - **The chat must stand on its own.** Saim sees only the final state of a file, never
   the edits in between. So never narrate a timeline — no "watch this break", no "now
@@ -131,17 +154,42 @@ means, concretely:
 
 - **Quote the code in the note.** Do not write "see `Team.cs`" — paste the relevant
   lines into a fenced block *and* link them:
-  `[Team.cs:41](../../src/Esports.Console/Team.cs#L41)`.
+  `[Team.cs:42](../../src/Esports.Console/Team.cs#L42)`.
 - Paths in day notes are relative: `../../src/...`, since the note lives in `docs/days/`.
 - Name the file every snippet comes from, right above it.
 - If a term is used, it is either explained in the note or linked to `GLOSSARY.md`.
 
+**Connect the dots, every time.** A note that teaches one idea in isolation has failed.
+Each note must, explicitly:
+
+- **Look back.** Name the earlier days this builds on, with links. "This works because
+  of the aliasing lesson from [Day 2]" — not left for him to infer.
+- **Look sideways.** Link to the `docs/concepts/*.md` file for anything with a
+  concept file, and to `GLOSSARY.md` for terms.
+- **Look forward.** Say where this reappears later. "`MatchState` becomes a database
+  column on Day 10, and the text-vs-number choice is a real trade-off."
+- **Zoom out at the end.** A short "where this sits in the whole system" — ideally a
+  diagram — so the small pieces visibly join up. Link to `docs/THE-BIG-PICTURE.md`,
+  and update that file whenever a new piece lands.
+
+**Teach the craft, not just the code.** Each note also covers:
+
+- **The order things were written**, and why. "`MatchState.cs` first, because
+  `Match.cs` cannot compile without it."
+- **Where files went and why** — and when the honest answer is "no folder yet, because
+  six files is not a problem", say that.
+- **How a senior would think here** — what they would check first, what they would
+  refuse to build yet, what they would leave a `TODO` about. Concrete, not generic
+  advice.
+
 **Two kinds of file, different jobs:**
 
 - `docs/days/day-NN-*.md` — the journal. What happened, in order, on one day.
-- `docs/concepts/*.md` — the reference. **This is what actually gets re-read.** When a
-  topic will be needed again later (DI lifetimes, classes vs records, async), it gets a
-  concept file that is appended to over time, and the day note links to it.
+- `docs/concepts/*.md` — the reference. **This is what actually gets re-read.** Every
+  topic of substance gets one, and it is appended to over time as later days add to it.
+  Written to be read cold, months later, by someone who was not there.
+- `docs/THE-BIG-PICTURE.md` — the map. How every piece built so far fits together, as
+  one flow. Updated every day. **This is the file that makes the dots click.**
 
 ---
 
@@ -172,8 +220,11 @@ The leaks that have mattered so far:
   only `Player.cs` may mutate it.
 - **`?` is erased at runtime.** `MatchScore?` and `MatchScore` compile to identical
   code. A linter, not an `Option`.
-- **An `enum` is not a sum type.** No payload, no exhaustiveness checking, and it is an
-  `int` underneath — `(MatchState)99` compiles and runs.
+- **An `enum` is not a sum type.** No payload, and it is an `int` underneath —
+  `(MatchState)99` compiles and runs. On exhaustiveness, be precise: a switch *without*
+  a `_` arm **does** warn (`CS8509` for a missing case, `CS8524` for unnamed values) and
+  throws at runtime; adding `_` silences both. So C# forces a choice between catching a
+  missing case and surviving a cast value — you cannot have both.
 
 ---
 

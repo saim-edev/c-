@@ -3,66 +3,80 @@
 Team t1 = new Team("T1", "T1");
 t1.AddPlayer(new Player("Faker", 1847));
 t1.AddPlayer(new Player("Gumayusi", 1791));
-t1.AddPlayer(new Player("Keria", 1823));
 
 Team gen = new Team("Gen.G", "GEN");
 gen.AddPlayer(new Player("Chovy", 1792));
 gen.AddPlayer(new Player("Peyz", 1760));
-gen.AddPlayer(new Player("Lehends", 1744));
 
 
-// ---- a match that has not been played yet ----
+// ---- a match walks through its lifecycle ----
 
 Match final = new Match(t1, gen);
 
-Console.WriteLine("--- before kickoff ---");
+Console.WriteLine("--- the happy path ---");
 Console.WriteLine(final);
-Console.WriteLine($"Played? {final.HasBeenPlayed}");
-Console.WriteLine($"Winner: {final.Winner?.Name ?? "nobody yet"}");
 
-
-// ---- play it ----
+final.Start();
+Console.WriteLine(final);
 
 final.RecordResult(3, 1);
-
-Console.WriteLine();
-Console.WriteLine("--- after the match ---");
 Console.WriteLine(final);
-Console.WriteLine($"Played? {final.HasBeenPlayed}");
-Console.WriteLine($"Winner: {final.Winner?.Name ?? "nobody yet"}");
-Console.WriteLine($"Margin: {final.Score?.Margin}");
+
+Console.WriteLine($"Finished? {final.IsFinished}   Winner: {final.Winner?.Name ?? "-"}");
 
 
-// ---- the rules defend themselves ----
+// ---- illegal moves are refused, not silently allowed ----
 
 Console.WriteLine();
-Console.WriteLine("--- what the rules refuse ---");
+Console.WriteLine("--- illegal transitions ---");
 
-try
-{
-    final.RecordResult(2, 0);
-}
-catch (InvalidOperationException ex)
-{
-    Console.WriteLine($"refused: {ex.Message}");
-}
+TryThis("start a finished match", () => final.Start());
+TryThis("cancel a finished match", () => final.Cancel());
+TryThis("record a result twice", () => final.RecordResult(2, 0));
 
-try
-{
-    Match nonsense = new Match(t1, t1);
-}
-catch (ArgumentException ex)
-{
-    Console.WriteLine($"refused: {ex.Message}");
-}
+Match early = new Match(t1, gen);
+TryThis("record a result before starting", () => early.RecordResult(2, 0));
 
 
-// ---- a draw has no winner ----
+// ---- the other two endings ----
 
-Match groupGame = new Match(t1, gen);
-groupGame.RecordResult(1, 1);
+Console.WriteLine();
+Console.WriteLine("--- forfeit and cancel ---");
+
+Match noShow = new Match(t1, gen);
+noShow.Start();
+noShow.Forfeit(t1);
+Console.WriteLine(noShow);
+Console.WriteLine($"Winner: {noShow.Winner?.Name ?? "-"}");
+
+Match calledOff = new Match(t1, gen);
+calledOff.Cancel();
+Console.WriteLine(calledOff);
+Console.WriteLine($"Winner: {calledOff.Winner?.Name ?? "-"}");
+
+
+// ---- a draw still has no winner ----
 
 Console.WriteLine();
 Console.WriteLine("--- a draw ---");
-Console.WriteLine(groupGame);
-Console.WriteLine($"Winner: {groupGame.Winner?.Name ?? "nobody - it was a draw"}");
+Match group = new Match(t1, gen);
+group.Start();
+group.RecordResult(1, 1);
+Console.WriteLine(group);
+Console.WriteLine($"Winner: {group.Winner?.Name ?? "nobody - it was a draw"}");
+
+
+// A small helper so each attempt below reads as one line.
+// `Action` is "a thing that can be run and returns nothing".
+static void TryThis(string what, Action attempt)
+{
+    try
+    {
+        attempt();
+        Console.WriteLine($"  allowed : {what}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"  refused : {what} -> {ex.Message}");
+    }
+}

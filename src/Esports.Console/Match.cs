@@ -1,4 +1,4 @@
-// A match pairs two teams. It may or may not have been played yet.
+// A match pairs two teams and moves through a fixed lifecycle.
 
 public class Match
 {
@@ -10,13 +10,17 @@ public class Match
     public Team HomeTeam { get; private set; }
     public Team AwayTeam { get; private set; }
 
-    // The `?` means "this might be nothing".
-    //
-    // A match that has not been played has no score at all. 0-0 would be a
-    // lie - that is a real result, a draw. `MatchScore?` lets the field
-    // genuinely hold nothing, and makes the compiler force you to check
-    // before you read it.
+    // Exactly one of five values, always. Not four bools (which would allow
+    // sixteen combinations, most of them nonsense) and not a string (where a
+    // typo compiles fine).
+    public MatchState State { get; private set; }
+
+    // The `?` means "this might be nothing". A match that has not been played
+    // has no score, and 0-0 would be a lie - that is a real result, a draw.
     public MatchScore? Score { get; private set; }
+
+    // Set only on a forfeit, where there is a winner but no real score.
+    public Team? ForfeitWinner { get; private set; }
 
     // ---- CONSTRUCTOR ----
 
@@ -31,36 +35,95 @@ public class Match
 
         HomeTeam = homeTeam;
         AwayTeam = awayTeam;
-        Score = null;          // explicitly: not played yet
+        State = MatchState.Scheduled;   // every match starts here
+        Score = null;
     }
 
-    // ---- BEHAVIOUR ----
+    // ---- TRANSITIONS ----
+    //
+    // Not every move between states is legal. The legal ones are:
+    //
+    //            ┌──────────────► Cancelled
+    //            │
+    //   Scheduled ──► InProgress ──► Completed
+    //            │         │
+    //            └─────────┴──────► Forfeited
+    //
+    // Each method below enforces one arrow. Anything else throws, so the
+    // object can never reach a state it has no legal path to.
 
-    // Reading a property that is just `Score != null` gives every other part
-    // of the program one clear question to ask, instead of each one doing
-    // its own null check and some of them getting it wrong.
-    public bool HasBeenPlayed => Score != null;
+    public void Start()
+    {
+        if (State != MatchState.Scheduled)
+        {
+            throw new InvalidOperationException(
+                $"Cannot start a match that is {State}");
+        }
+
+        State = MatchState.InProgress;
+    }
 
     public void RecordResult(int homeScore, int awayScore)
     {
-        if (HasBeenPlayed)
+        if (State != MatchState.InProgress)
         {
             throw new InvalidOperationException(
-                $"{HomeTeam.Tag} vs {AwayTeam.Tag} already finished {Score}");
+                $"Cannot record a result for a match that is {State}");
         }
 
         // Create() rather than `new` - it rejects negative numbers, so an
         // invalid score cannot get in here.
         Score = MatchScore.Create(homeScore, awayScore);
+        State = MatchState.Completed;
     }
 
-    // Who won. Returns a Team? because there may be no winner: the match
-    // might not have been played, or it might have been a draw.
+    public void Forfeit(Team winner)
+    {
+        if (State != MatchState.Scheduled && State != MatchState.InProgress)
+        {
+            throw new InvalidOperationException(
+                $"Cannot forfeit a match that is {State}");
+        }
+
+        if (!ReferenceEquals(winner, HomeTeam) && !ReferenceEquals(winner, AwayTeam))
+        {
+            throw new ArgumentException($"{winner.Tag} is not playing in this match");
+        }
+
+        ForfeitWinner = winner;
+        State = MatchState.Forfeited;
+    }
+
+    public void Cancel()
+    {
+        if (State != MatchState.Scheduled)
+        {
+            throw new InvalidOperationException(
+                $"Cannot cancel a match that is {State}");
+        }
+
+        State = MatchState.Cancelled;
+    }
+
+    // ---- QUESTIONS THE MATCH CAN ANSWER ----
+
+    // A match is over if it reached any state it cannot leave.
+    public bool IsFinished =>
+        State == MatchState.Completed
+        || State == MatchState.Forfeited
+        || State == MatchState.Cancelled;
+
+    // Who won. Null is a real answer here: not played yet, a draw, cancelled.
     public Team? Winner
     {
         get
         {
-            if (Score == null || Score.IsDraw)
+            if (State == MatchState.Forfeited)
+            {
+                return ForfeitWinner;
+            }
+
+            if (State != MatchState.Completed || Score == null || Score.IsDraw)
             {
                 return null;
             }
@@ -71,11 +134,18 @@ public class Match
 
     public override string ToString()
     {
-        if (Score == null)
+        // A `switch expression` picks one value out of several cases.
+        // `_` is the catch-all arm. Reads top to bottom, first match wins.
+        string detail = State switch
         {
-            return $"{HomeTeam.Tag} vs {AwayTeam.Tag} (not played)";
-        }
+            MatchState.Scheduled  => "not played yet",
+            MatchState.InProgress => "live now",
+            MatchState.Completed  => $"{Score}",
+            MatchState.Forfeited  => $"forfeit, {ForfeitWinner?.Tag} advances",
+            MatchState.Cancelled  => "cancelled",
+            _                     => "unknown"
+        };
 
-        return $"{HomeTeam.Tag} {Score} {AwayTeam.Tag}";
+        return $"{HomeTeam.Tag} vs {AwayTeam.Tag} [{State}] {detail}";
     }
 }

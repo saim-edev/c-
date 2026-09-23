@@ -8,65 +8,53 @@ Team dk = MakeTeam("Dplus", "DK", 1740, 1712, 1699);
 Team[] teams = [t1, gen, hle, dk];
 
 
-// ---- the same four teams, run two different ways ----
+// ---- a league: everyone plays everyone ----
 
-// The ONLY difference between these two lines is the object handed in.
 Tournament league = new Tournament("LCK Spring", new RoundRobinFormat());
-Tournament cup = new Tournament("LCK Cup", new SingleEliminationFormat());
 
-RunTournament(league, teams);
-RunTournament(cup, teams);
+foreach (Team team in teams)
+{
+    league.Register(team);
+}
+
+league.GenerateMatches();
+
+Console.WriteLine($"=== {league.Name} ({league.FormatName}) ===");
+Console.WriteLine($"{league.TeamCount} teams, {league.MatchCount} matches");
 
 
-// ---- one loop, two formats ----
-//
-// `ITournamentFormat[]` holds objects of two different classes. The loop
-// does not know or care which is which - it only uses what the contract
-// promises. Adding a third format means adding it to this array.
+// ---- play every match ----
+
+Random rng = new Random(42);   // fixed seed, so every run is identical
+
+foreach (Match m in league.Matches)
+{
+    m.Start();
+    m.RecordResult(rng.Next(0, 4), rng.Next(0, 4));
+}
 
 Console.WriteLine();
-Console.WriteLine("--- every format, same teams ---");
+Console.WriteLine("--- results ---");
 
-ITournamentFormat[] formats = [new RoundRobinFormat(), new SingleEliminationFormat()];
-
-foreach (ITournamentFormat format in formats)
+foreach (Match m in league.Matches)
 {
-    List<Match> fixtures = format.GenerateMatches(teams);
-    Console.WriteLine($"  {format.Name,-20} {fixtures.Count} matches");
+    Console.WriteLine($"  {m}");
 }
 
 
-// ---- what each format refuses ----
+// ---- the table ----
 
 Console.WriteLine();
-Console.WriteLine("--- limits ---");
+Console.WriteLine("--- standings ---");
 
-Team[] three = [t1, gen, hle];
+List<TeamStanding> table = StandingsTable.Build(league.Teams, league.Matches);
+StandingsTable.Print(table);
 
-TryThis("knockout with 3 teams", () => new SingleEliminationFormat().GenerateMatches(three));
-TryThis("round robin with 3 teams", () => new RoundRobinFormat().GenerateMatches(three));
+Console.WriteLine();
+Console.WriteLine($"Champion: {table[0].Team.Name} on {table[0].Points} points");
 
 
 // ---- helpers ----
-
-static void RunTournament(Tournament tournament, Team[] teams)
-{
-    foreach (Team team in teams)
-    {
-        tournament.Register(team);
-    }
-
-    tournament.GenerateMatches();
-
-    Console.WriteLine();
-    Console.WriteLine($"=== {tournament.Name} ({tournament.FormatName}) ===");
-    Console.WriteLine($"{tournament.TeamCount} teams, {tournament.MatchCount} matches");
-
-    foreach (Match m in tournament.Matches)
-    {
-        Console.WriteLine($"  {m}");
-    }
-}
 
 static Team MakeTeam(string name, string tag, params int[] ratings)
 {
@@ -78,17 +66,4 @@ static Team MakeTeam(string name, string tag, params int[] ratings)
     }
 
     return team;
-}
-
-static void TryThis(string what, Action attempt)
-{
-    try
-    {
-        attempt();
-        Console.WriteLine($"  allowed : {what}");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"  refused : {what} -> {ex.Message}");
-    }
 }

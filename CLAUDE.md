@@ -107,6 +107,41 @@ option is often what he would have reached for, so naming its failure is the les
 
 ---
 
+## Pre-flight check — run this before EVERY teaching message
+
+This exists because the 2-3 term rule keeps getting drifted past. Count, do not
+estimate.
+
+**1. Count the new syntax.** Every piece of syntax, method or concept Saim has not
+already met. Look at the actual message, not at what it feels like.
+   - **0-3** → send it.
+   - **4+** → **split it.** Not "explain faster" — split into separate messages, each
+     ending with its own run and its own output.
+
+**2. Count the files.** **One new or rewritten file per chunk.** Three files in one
+message is too many even if each is small.
+
+**3. Never introduce and rewrite the same file in one message.** Writing a loop version
+and then a LINQ version of the same file in one go means the first never landed. If
+both versions are worth showing, they are two chunks with a stop in between.
+
+**4. Check for silent contradictions.** Did the code use something a concept file says
+to be careful with — `!`, a public constructor, a cast, catching `Exception`? Either
+explain it in that message or do not use it.
+
+**5. The familiarity trap — the one that actually causes this.** When the thought is
+*"he already knows this, so I can go faster"*, **go slower instead.** Knowing `map` and
+`filter` as ideas is not knowing `OrderByDescending`, tuple syntax, named arguments, or
+C#'s laziness rules. Every time this rule has been broken, that thought preceded it.
+
+**6. End the chunk with a stop.** One runnable thing, its real output, and a check-in.
+Do not chain "and then we also..." onto the end.
+
+**If a chunk feels satisfying to write, it is probably too big.** The urge to finish the
+whole topic in one go is the thing to resist.
+
+---
+
 ## How to write the notes
 
 The day notes are not a summary of what happened. **They are the lesson, written down**

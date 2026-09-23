@@ -48,3 +48,40 @@ compared against `node --version`.
 the esbuild dev-server advisory (GHSA-67mh-4wv8-2f99) that Vite 5 still has.
 **Lesson:** `EBADENGINE` warnings are not noise. When a native module "can't be
 found", check the engine requirement before deleting `node_modules`.
+
+## 2026-09-23 — `MatchScore.Create()` could be bypassed entirely
+
+**Symptom:** none. Nothing failed, no test went red, no exception was thrown. The
+defect was found only because a doc was being written and the claim "an invalid score
+cannot exist" got tested rather than repeated.
+
+**Root cause:** `MatchScore` was a positional record:
+
+```csharp
+public record MatchScore(int Home, int Away);
+```
+
+A positional record's constructor is **public**. `Create()` validated, but `new`
+sat right beside it, unguarded:
+
+```
+via Create():  refused: Scores cannot be negative: -1-3
+via new:       built: -1-3  Margin=4  GamesPlayed=2
+```
+
+A margin of 4 and 2 games played, from a score of minus one. Every computed property
+happily calculated on impossible input.
+
+**How I found it:** by running the bypass instead of assuming the guard held.
+
+**Fix:** made the constructor `private` so `Create()` is the only way in. Verified the
+hole is closed: `error CS0122: 'MatchScore.MatchScore(int, int)' is inaccessible due
+to its protection level`.
+
+**Lesson — and it is the big one:** *a guard only works if it is the only way in.*
+This code failed the exact principle it was written to demonstrate. `Create()` closed
+the front door and left `new` standing open beside it.
+
+Ask of every validation: **what else can construct this?** A public constructor, an
+object initializer, `with`, deserialisation from JSON or a database — each is another
+door, and each needs closing or the guard is decoration.

@@ -103,6 +103,22 @@ Checking it into the repo means it survives any session and is visible/editable.
 **Cost:** none.
 **Date:** 2026-09-22
 
+## D11 — `MatchScore` is a non-positional record with a private constructor
+
+**Alternatives:** the original one-liner `public record MatchScore(int Home, int Away);`.
+**Why:** a positional record's constructor is **public**, so `new MatchScore(-1, 3)`
+bypassed `Create()` entirely and produced a score of `-1-3` with `Margin = 4` and
+`GamesPlayed = 2` — nonsense values flowing through every computed property. A guard
+only works if it is the **only** way in. The constructor is now private and `Create()`
+is the single door, verified: `error CS0122: ... is inaccessible due to its protection
+level`.
+**Cost:** real. `with` no longer works from outside the type, because that would be a
+second route to an invalid value. `WithHome()` / `WithAway()` replace it and re-validate.
+The declaration is also ~10 lines instead of 1.
+**Found by:** writing the concept file for nullability and guards, which tested the
+claim instead of repeating it.
+**Date:** 2026-09-23
+
 ---
 
 ## Decisions already made in the plan, to be recorded here as they land

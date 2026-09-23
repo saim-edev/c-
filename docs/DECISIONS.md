@@ -119,6 +119,29 @@ The declaration is also ~10 lines instead of 1.
 claim instead of repeating it.
 **Date:** 2026-09-23
 
+## D12 — Tournament formats are an interface, not an enum plus `if`
+
+**Alternatives:** a `TournamentFormat` enum with an `if`/`else` inside
+`Tournament.GenerateMatches()`.
+**Why:** the `if` version makes `Tournament` responsible for knowing every format that
+will ever exist, and the branch spreads — formats also differ in standings and
+reporting, so "how knockout works" ends up smeared across several files. With the
+interface, adding a format is one new class and zero edits to existing code. The test:
+`Tournament.cs` does not contain the word `RoundRobin`.
+**Cost:** four files instead of one, and dispatch is decided at runtime so the compiler
+cannot tell you which implementation will run.
+**Date:** 2026-09-23
+
+## D13 — The interface was extracted, not designed up front
+
+**Alternatives:** define `ITournamentFormat` first, then write round robin against it.
+**Why:** round robin was written as a plain loop **inside** `Tournament` and only pulled
+out once a second format appeared. You cannot see the right shape for an abstraction
+with one example, and an interface with one implementation is usually ceremony.
+**Cost:** one refactor. Cheap, and it produced a better-shaped contract than guessing
+would have.
+**Date:** 2026-09-23
+
 ---
 
 ## Decisions already made in the plan, to be recorded here as they land

@@ -1,73 +1,72 @@
-// ---- build four teams ----
+// ---- four teams, in seed order (strongest first) ----
 
 Team t1 = MakeTeam("T1", "T1", 1847, 1791, 1823);
 Team gen = MakeTeam("Gen.G", "GEN", 1792, 1760, 1744);
 Team hle = MakeTeam("Hanwha", "HLE", 1755, 1730, 1718);
 Team dk = MakeTeam("Dplus", "DK", 1740, 1712, 1699);
 
-
-// ---- register them ----
-
-Tournament lck = new Tournament("LCK Spring");
-
-lck.Register(t1);
-lck.Register(gen);
-lck.Register(hle);
-lck.Register(dk);
-
-Console.WriteLine($"{lck.TeamCount} teams registered");
+Team[] teams = [t1, gen, hle, dk];
 
 
-// ---- work out who plays who ----
+// ---- the same four teams, run two different ways ----
 
-lck.GenerateMatches();
+// The ONLY difference between these two lines is the object handed in.
+Tournament league = new Tournament("LCK Spring", new RoundRobinFormat());
+Tournament cup = new Tournament("LCK Cup", new SingleEliminationFormat());
 
-Console.WriteLine($"{lck.MatchCount} matches generated");
+RunTournament(league, teams);
+RunTournament(cup, teams);
+
+
+// ---- one loop, two formats ----
+//
+// `ITournamentFormat[]` holds objects of two different classes. The loop
+// does not know or care which is which - it only uses what the contract
+// promises. Adding a third format means adding it to this array.
+
 Console.WriteLine();
+Console.WriteLine("--- every format, same teams ---");
 
-foreach (Match m in lck.Matches)
+ITournamentFormat[] formats = [new RoundRobinFormat(), new SingleEliminationFormat()];
+
+foreach (ITournamentFormat format in formats)
 {
-    Console.WriteLine($"  {m}");
+    List<Match> fixtures = format.GenerateMatches(teams);
+    Console.WriteLine($"  {format.Name,-20} {fixtures.Count} matches");
 }
 
 
-// ---- play them all ----
+// ---- what each format refuses ----
 
 Console.WriteLine();
-Console.WriteLine("--- playing every match ---");
+Console.WriteLine("--- limits ---");
 
-Random rng = new Random(42);   // fixed seed, so every run is the same
+Team[] three = [t1, gen, hle];
 
-foreach (Match m in lck.Matches)
-{
-    m.Start();
-    m.RecordResult(rng.Next(0, 4), rng.Next(0, 4));
-    Console.WriteLine($"  {m}");
-}
-
-
-// ---- the rules hold ----
-
-Console.WriteLine();
-Console.WriteLine("--- what the tournament refuses ---");
-
-TryThis("register a team after fixtures exist", () => lck.Register(t1));
-TryThis("generate fixtures twice", () => lck.GenerateMatches());
-TryThis("register the same team twice", () =>
-{
-    Tournament t = new Tournament("Test");
-    t.Register(t1);
-    t.Register(t1);
-});
-TryThis("generate fixtures with one team", () =>
-{
-    Tournament t = new Tournament("Test");
-    t.Register(t1);
-    t.GenerateMatches();
-});
+TryThis("knockout with 3 teams", () => new SingleEliminationFormat().GenerateMatches(three));
+TryThis("round robin with 3 teams", () => new RoundRobinFormat().GenerateMatches(three));
 
 
 // ---- helpers ----
+
+static void RunTournament(Tournament tournament, Team[] teams)
+{
+    foreach (Team team in teams)
+    {
+        tournament.Register(team);
+    }
+
+    tournament.GenerateMatches();
+
+    Console.WriteLine();
+    Console.WriteLine($"=== {tournament.Name} ({tournament.FormatName}) ===");
+    Console.WriteLine($"{tournament.TeamCount} teams, {tournament.MatchCount} matches");
+
+    foreach (Match m in tournament.Matches)
+    {
+        Console.WriteLine($"  {m}");
+    }
+}
 
 static Team MakeTeam(string name, string tag, params int[] ratings)
 {

@@ -92,3 +92,20 @@ rather than statement-oriented.
 **Rich vs anemic domain model** — rich: the rules live on the entity itself
 (`player.RecordWin()`). Anemic: entities are data bags and the rules live in separate
 service classes. This project is rich; much NestJS code is anemic. Both are valid.
+
+**Interface** — a contract listing what something must be able to do, containing no
+code. Several classes can fill the same contract differently, and a caller can use any
+of them without knowing which it holds. `I` prefix is convention, not syntax.
+
+**Polymorphism** — one call site running different code depending on which object is
+there. Mechanically: the variable's declared type decides what you may call; the object
+at that address decides what actually runs. Each object carries a pointer to its own
+table of methods.
+
+**`IReadOnlyList<T>`** — a **view** over a list. No copy is made, so it costs nothing,
+and there is no `Add` on it. Stops accidents, not sabotage — a caller can cast it back
+to `List<T>`. A real guarantee means copying, and paying for the copy.
+
+**Dependency injection** — handing an object the things it needs from outside, rather
+than letting it build them itself. `Tournament` takes an `ITournamentFormat` in its
+constructor. Done by hand on Day 5; automated by a container on Day 10.

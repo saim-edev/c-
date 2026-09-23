@@ -1,4 +1,5 @@
-// A tournament holds teams, then works out who plays who.
+// A tournament holds teams and fixtures. It does NOT know how fixtures are
+// worked out - it hands that job to whatever format it was handed.
 
 public class Tournament
 {
@@ -6,32 +7,43 @@ public class Tournament
 
     public string Name { get; private set; }
 
-    // Same reasoning as Team._players: `private`, not `private set`.
-    // Handing out the real List<T> would let any caller Add() straight past
-    // the rules below.
+    // "Some format." Not RoundRobinFormat, not SingleEliminationFormat.
+    // The variable's declared type is the CONTRACT; the object it points at
+    // is one of the classes that fills the contract.
+    //
+    // `readonly` = can only be assigned in the constructor. The format a
+    // tournament runs under should not change halfway through.
+    private readonly ITournamentFormat _format;
+
     private List<Team> _teams = new List<Team>();
     private List<Match> _matches = new List<Match>();
 
-    public Tournament(string name)
+    // The format is handed in from outside. Tournament does not choose it,
+    // does not build it, and never finds out which one it got.
+    public Tournament(string name, ITournamentFormat format)
     {
         Name = name;
+        _format = format;
     }
+
+    // Reading the format's name is fine - that is part of the contract.
+    // Asking "are you a RoundRobinFormat?" would not be.
+    public string FormatName => _format.Name;
 
     // ---- SIGNING UP ----
 
     public void Register(Team team)
     {
-        // Once the fixtures exist, adding a team would leave it with no
-        // matches - a team in the tournament that never plays. Refuse.
+        // Once fixtures exist, a new team would have no matches.
         if (_matches.Count > 0)
         {
             throw new InvalidOperationException(
                 $"{Name} has already started - cannot register {team.Tag}");
         }
 
-        // A team registering twice would play itself. ReferenceEquals is
-        // doing the work here: two Team objects with the same tag are
-        // different teams, but the SAME object registered twice is not.
+        // The SAME object twice would end up playing itself. Two different
+        // Team objects that happen to share a tag are different teams, so
+        // ReferenceEquals is the right check, not ==.
         foreach (Team existing in _teams)
         {
             if (ReferenceEquals(existing, team))
@@ -47,20 +59,13 @@ public class Tournament
 
     public int MatchCount => _matches.Count;
 
-    // ---- WORKING OUT WHO PLAYS WHO ----
+    // ---- FIXTURES ----
 
-    // Every team plays every other team once.
+    // THE WHOLE POINT OF TODAY IS THIS METHOD.
     //
-    // The loop shape is the whole trick. `j` starts at `i + 1`, never 0:
-    //
-    //        j=0  j=1  j=2  j=3
-    //   i=0    -   X    X    X       X = a match
-    //   i=1    -   -    X    X       - = skipped
-    //   i=2    -   -    -    X
-    //   i=3    -   -    -    -
-    //
-    // Starting j at 0 would give both "A plays B" and "B plays A", plus
-    // "A plays A" down the diagonal. Starting at i+1 takes each pair once.
+    // There is no `if`. No mention of round robin or knockout. It asks the
+    // format to do the work and stores the answer. Adding a third format
+    // means writing one new class and changing NOTHING in this file.
     public void GenerateMatches()
     {
         if (_matches.Count > 0)
@@ -68,30 +73,14 @@ public class Tournament
             throw new InvalidOperationException($"{Name} fixtures already generated");
         }
 
-        if (_teams.Count < 2)
-        {
-            throw new InvalidOperationException(
-                $"{Name} needs at least 2 teams, has {_teams.Count}");
-        }
-
-        for (int i = 0; i < _teams.Count; i++)
-        {
-            for (int j = i + 1; j < _teams.Count; j++)
-            {
-                _matches.Add(new Match(_teams[i], _teams[j]));
-            }
-        }
+        _matches = _format.GenerateMatches(_teams);
     }
 
-    // ---- READING THE FIXTURES ----
+    // ---- READING ----
 
-    // Callers need to see the matches. Returning the real List<Match> would
-    // hand out the arrow to it, so anyone could .Add() a fixture that the
-    // rules above never approved.
-    //
-    // IReadOnlyList<T> is a VIEW of the same list - no copy is made, so it
-    // costs nothing. It is a strong hint, not a hard guarantee: a determined
-    // caller can cast it back. It stops accidents, not sabotage.
+    // IReadOnlyList<T> is a VIEW of the same list, so no copy is made and it
+    // costs nothing. There is no Add on it. It stops accidents, not
+    // sabotage - a caller can cast it back to List<T>.
     public IReadOnlyList<Match> Matches => _matches;
 
     public IReadOnlyList<Team> Teams => _teams;

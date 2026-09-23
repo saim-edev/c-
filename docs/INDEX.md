@@ -14,6 +14,7 @@ piece built so far fits together, as one flow.
 | [classes-vs-records](concepts/classes-vs-records.md) | identity or value? |
 | [nullability-and-guards](concepts/nullability-and-guards.md) | saying "nothing"; refusing invalid objects |
 | [enums-and-state-machines](concepts/enums-and-state-machines.md) | modelling a lifecycle |
+| [interfaces-and-polymorphism](concepts/interfaces-and-polymorphism.md) | one call, many answers; when NOT to use one |
 | [debugging](concepts/debugging.md) | the bug log and the method |
 | [GLOSSARY](GLOSSARY.md) · [CHEATSHEET](CHEATSHEET.md) · [DECISIONS](DECISIONS.md) | terms · C# vs functional · why X not Y |
 
@@ -29,7 +30,7 @@ One row per day. Filled in as each day completes.
 | 2 | Collections, and what a variable actually holds | [day-02](days/day-02-collections-and-references.md) | `day-02` | `List<T>`, `foreach`, computed properties, value vs reference, aliasing |
 | 3 | Equality, records, and how to say "nothing" | [day-03](days/day-03-equality-records-and-nothing.md) | `day-03` | `==` vs contents, `record`, `with`, nullable `?`, `?.`, `??`, guards |
 | 4 | Enums, and a match that can't cheat | [day-04](days/day-04-enums-and-state-machines.md) | `day-04` | `enum`, state machine, guarded transitions, `switch` expression |
-| 5 | Collections & generics from the inside | — | — | `List<T>`, `Dictionary<K,V>`, generics, assemblies |
+| 5 | Interfaces: one call, two different answers | [day-05](days/day-05-interfaces-and-polymorphism.md) | `day-05` | `Tournament`, `interface`, polymorphism, `IReadOnlyList<T>` |
 | 6 | Inheritance, interfaces, polymorphism | — | — | `callvirt`, v-tables, abstract classes, strategies |
 | 7 | Absence, failure, cleanup | — | — | nullability, exceptions, GC, `IDisposable` |
 | 8 | Functions as values | — | — | delegates, lambdas, LINQ, events, async intro |

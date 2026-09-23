@@ -3,14 +3,14 @@
 **What this file is for:** every day teaches one small thing. This file is where those
 small things are shown joining up. When something feels disconnected, read this.
 
-Updated every day. Last updated: **Day 4**.
+Updated every day. Last updated: **Day 5**.
 
 ---
 
 ## Where we are right now
 
 ```
-  DAY 0 ─────────── DAY 4                DAY 9 ──── DAY 18        DAY 19 ─── DAY 25
+  DAY 0 ─────────── DAY 5                DAY 9 ──── DAY 18        DAY 19 ─── DAY 25
   ══════════════════════                 ═══════════════          ═══════════════
   you are here                           not started              not started
 
@@ -28,60 +28,84 @@ Updated every day. Last updated: **Day 4**.
 
 ## What exists today
 
-Six files. That is the whole program.
+Ten files. That is the whole program.
 
 ```
-  F:\saim\
-    src\Esports.Console\
-      Program.cs        ← the thing that runs. Creates teams, plays matches.
-      Player.cs         ← a person. Has a rating that only methods can change.
-      Team.cs           ← holds up to 5 players. Enforces that limit itself.
-      Match.cs          ← pairs two teams. Has a lifecycle it cannot cheat.
-      MatchScore.cs     ← a result, e.g. 3-1. Knows if it was a draw.
-      MatchState.cs     ← the five states a match can be in.
+  F:\saim    src\Esports.Console      Program.cs                   ← the entry point. Builds teams, runs tournaments.
+
+      Player.cs                    ← a person. Rating only changes via methods.
+      Team.cs                      ← up to 5 players. Enforces that limit itself.
+      Match.cs                     ← pairs two teams. A lifecycle it cannot cheat.
+      MatchScore.cs                ← a result, e.g. 3-1. Knows if it was a draw.
+      MatchState.cs                ← the five states a match can be in.
+      Tournament.cs                ← holds teams + fixtures. Knows NO format.
+
+      ITournamentFormat.cs         ← the contract: teams in, matches out.
+      RoundRobinFormat.cs          ← everyone plays everyone.
+      SingleEliminationFormat.cs   ← lose once, you are out.
 ```
 
 ### How they fit together
 
 ```
    ┌──────────────────────────────────────────────────────────┐
-   │  Program.cs           the entry point - what runs         │
-   └───────────────┬──────────────────────────────────────────┘
-                   │ creates and uses
-                   ▼
-   ┌──────────────────────────┐        ┌────────────────────────┐
-   │  Match                   │───────►│  Team                  │
-   │                          │  two   │                        │
-   │  HomeTeam ──────────────────────► │  Name, Tag             │
-   │  AwayTeam ──────────────────────► │  _players (private)    │
-   │  State                   │        │  AddPlayer()           │
-   │  Score?  ────────┐       │        │  PlayerCount           │
-   │  ForfeitWinner?  │       │        │  AverageRating         │
-   │                  │       │        └───────────┬────────────┘
-   │  Start()         │       │                    │ holds up to 5
-   │  RecordResult()  │       │                    ▼
-   │  Forfeit()       │       │        ┌────────────────────────┐
-   │  Cancel()        │       │        │  Player                │
-   │  Winner          │       │        │                        │
-   └──────────────────┼───────┘        │  GamerTag, Rating      │
-                      │                │  RecordWin()           │
-            ┌─────────┴────┐           │  RecordLoss()          │
-            ▼              ▼           └────────────────────────┘
-   ┌────────────────┐  ┌──────────────┐
-   │  MatchScore    │  │  MatchState  │
-   │  (a record)    │  │  (an enum)   │
-   │                │  │              │
-   │  Home, Away    │  │  Scheduled   │
-   │  IsDraw        │  │  InProgress  │
-   │  HomeWon       │  │  Completed   │
-   │  Margin        │  │  Forfeited   │
-   │  Create()      │  │  Cancelled   │
-   └────────────────┘  └──────────────┘
+   │  Program.cs        the entry point - what runs            │
+   └──────────────────────┬───────────────────────────────────┘
+                          │ builds, and hands a format in
+                          ▼
+   ┌────────────────────────────────┐
+   │  Tournament                    │
+   │    Name                        │        ┌──────────────────────┐
+   │    _teams    (private)         │        │  ITournamentFormat   │
+   │    _matches  (private)         │        │   (an interface)     │
+   │    _format ────────────────────┼───────►│                      │
+   │                                │  knows │  Name                │
+   │    Register()                  │  ONLY  │  GenerateMatches()   │
+   │    GenerateMatches()           │  this  └──────────┬───────────┘
+   │    Matches  (IReadOnlyList)    │            ┌──────┴───────┐
+   └───────────────┬────────────────┘            ▼              ▼
+                   │ holds                 RoundRobin    SingleElimination
+                   ▼                        Format            Format
+   ┌──────────────────────────┐              6 matches      2 matches
+   │  Match                   │              (4 teams)      (4 teams)
+   │    HomeTeam ─────────────┼──────┐
+   │    AwayTeam ─────────────┼──────┤
+   │    State  ───────────────┼──┐   │
+   │    Score? ────────┐      │  │   │
+   │    Start()        │      │  │   │
+   │    RecordResult() │      │  │   │
+   │    Winner         │      │  │   │
+   └───────────────────┼──────┘  │   │
+                       ▼         ▼   │
+          ┌────────────────┐ ┌──────────────┐
+          │  MatchScore    │ │  MatchState  │
+          │  (a record)    │ │  (an enum)   │
+          │  Home, Away    │ │  Scheduled   │
+          │  IsDraw        │ │  InProgress  │
+          │  Margin        │ │  Completed   │
+          │  Create()      │ │  Forfeited   │
+          └────────────────┘ │  Cancelled   │
+                             └──────────────┘
+                                     │
+   ┌────────────────────────┐        │
+   │  Team                  │◄───────┘ (two per match)
+   │    Name, Tag           │
+   │    _players (private)  │
+   │    AddPlayer()         │
+   │    AverageRating       │
+   └───────────┬────────────┘
+               │ holds up to 5
+               ▼
+   ┌────────────────────────┐
+   │  Player                │
+   │    GamerTag, Rating    │
+   │    RecordWin()         │
+   └────────────────────────┘
 ```
 
-**Read it top-down:** `Program.cs` makes teams, fills them with players, pairs two
-teams into a match, and drives that match through its states. Every arrow is "this one
-holds a reference to that one".
+**The important arrow is the one from `Tournament` to `ITournamentFormat`.** It points
+at a *contract*, not at a class. `Tournament` never learns whether it is running a
+league or a knockout — and that is why adding a third format changes nothing in it.
 
 ---
 
@@ -97,6 +121,9 @@ it existed.**
 | 3 | [MatchScore.cs](../src/Esports.Console/MatchScore.cs) | Needs nothing, but a match needs it, so it came before `Match`. |
 | 4 | [Match.cs](../src/Esports.Console/Match.cs) | Needs `Team` **and** `MatchScore`. Could not compile before both. |
 | 5 | [MatchState.cs](../src/Esports.Console/MatchState.cs) | Added when `Match` outgrew a single true/false. `Match` cannot compile without it once it is referenced. |
+| 6 | [Tournament.cs](../src/Esports.Console/Tournament.cs) | Needs `Team` and `Match`. Organises what already exists. |
+| 7 | [ITournamentFormat.cs](../src/Esports.Console/ITournamentFormat.cs) | Extracted from `Tournament` **after** a second format was needed — not designed up front. |
+| 8-9 | [RoundRobinFormat.cs](../src/Esports.Console/RoundRobinFormat.cs), [SingleEliminationFormat.cs](../src/Esports.Console/SingleEliminationFormat.cs) | Need the contract to exist before they can promise to fill it. |
 
 **The general rule, and it holds everywhere in backend work:** build from the inside
 out. The thing with the fewest dependencies first. If file A mentions file B, B has to
@@ -123,6 +150,8 @@ Every small idea, traced from the day that introduced it to where it will matter
 | **guards** | [Day 3](days/day-03-equality-records-and-nothing.md) | Validating at every call site means missing one | Becomes request validation on Day 14 — same idea, HTTP boundary |
 | **enum** | [Day 4](days/day-04-enums-and-state-machines.md) | Five states; bools give sixteen combinations, strings allow typos | A database column on Day 12, with a real text-vs-number trade-off |
 | **state machine** | [Day 4](days/day-04-enums-and-state-machines.md) | A result could be recorded on a match that never started | API endpoints refusing illegal operations, with proper HTTP status codes |
+| **interface** | [Day 5](days/day-05-interfaces-and-polymorphism.md) | Two tournament formats; an `if` would make `Tournament` know every format forever | **Day 10:** the database is handed in exactly this way — that is dependency injection. Also the seam that makes testing possible. |
+| **`IReadOnlyList<T>`** | [Day 5](days/day-05-interfaces-and-polymorphism.md) | Handing out the real `List<T>` let callers bypass the rules | Every API response — expose the narrowest thing that works |
 
 **Notice the pattern in the right-hand column.** Almost nothing is thrown away. The
 console app is not a toy that gets deleted — it is the same code, later given a
@@ -142,6 +171,7 @@ Every single day so far has been the same move in a different costume:
 | 2 | Adding a 6th player to a 5-player team | the limit inside `AddPlayer` |
 | 3 | A negative score; a team playing itself | guards in `Create` and the constructor |
 | 4 | Recording a result on a match that never started | the state machine |
+| 5 | A caller `.Add()`-ing straight into a tournament's fixture list | `IReadOnlyList<T>` |
 
 A senior developer reaches for this instinctively. The question is never *"will I
 remember to check?"* — it is **"where do I put this so nobody can skip it?"**
@@ -274,6 +304,7 @@ to be read cold:
 - [Collections](concepts/collections.md) — `List<T>` and choosing a collection
 - [Nullability and guards](concepts/nullability-and-guards.md) — saying "nothing", refusing invalid objects
 - [Enums and state machines](concepts/enums-and-state-machines.md) — modelling a lifecycle
+- [Interfaces and polymorphism](concepts/interfaces-and-polymorphism.md) — one call, many answers
 - [Debugging](concepts/debugging.md) — the bug log and the method
 
 Plus [GLOSSARY.md](GLOSSARY.md) for terms, [CHEATSHEET.md](CHEATSHEET.md) for C# beside

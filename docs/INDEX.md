@@ -8,7 +8,7 @@ One row per day. Filled in as each day completes.
 | 1 | Types, classes, and encapsulation | [day-01](days/day-01-types-classes-encapsulation.md) | `day-01` | types, classes, constructors, methods, `private set` |
 | 2 | Collections, and what a variable actually holds | [day-02](days/day-02-collections-and-references.md) | `day-02` | `List<T>`, `foreach`, computed properties, value vs reference, aliasing |
 | 3 | Equality, records, and how to say "nothing" | [day-03](days/day-03-equality-records-and-nothing.md) | `day-03` | `==` vs contents, `record`, `with`, nullable `?`, `?.`, `??`, guards |
-| 4 | Identity vs value | — | — | records, equality, `GetHashCode`, immutability |
+| 4 | Enums, and a match that can't cheat | [day-04](days/day-04-enums-and-state-machines.md) | `day-04` | `enum`, state machine, guarded transitions, `switch` expression |
 | 5 | Collections & generics from the inside | — | — | `List<T>`, `Dictionary<K,V>`, generics, assemblies |
 | 6 | Inheritance, interfaces, polymorphism | — | — | `callvirt`, v-tables, abstract classes, strategies |
 | 7 | Absence, failure, cleanup | — | — | nullability, exceptions, GC, `IDisposable` |

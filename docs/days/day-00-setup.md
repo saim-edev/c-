@@ -270,7 +270,7 @@ git push -u origin main
 
 ---
 
-## 11. What tomorrow depends on
+## 11. What's next
 
 Day 1 needs, and has:
 

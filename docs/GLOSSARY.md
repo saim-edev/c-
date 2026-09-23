@@ -73,3 +73,20 @@ type copies the data; copying a reference type copies the address.
 
 **Static member** — belongs to the type, not to any one instance. Called as
 `MatchScore.Create(...)`, never `someScore.Create(...)`.
+
+**Enum** — a fixed, named set of options that becomes a new type. Exactly as many
+values as you listed, all known to the compiler. **Not a sum type**: carries no
+payload, is not exhaustiveness-checked, and is an `int` underneath, so `(MyEnum)99`
+compiles and runs.
+
+**State machine** — a set of states plus rules about which moves between them are
+allowed. `Match` is one: `Scheduled → InProgress → Completed`, with forfeit and cancel
+as alternative endings. Each method enforces one arrow and throws on anything else.
+
+**Switch expression** — pattern matching that *produces a value*, so it can be assigned
+directly. `_` is the catch-all arm. One of the few places C# is expression-oriented
+rather than statement-oriented.
+
+**Rich vs anemic domain model** — rich: the rules live on the entity itself
+(`player.RecordWin()`). Anemic: entities are data bags and the rules live in separate
+service classes. This project is rich; much NestJS code is anemic. Both are valid.

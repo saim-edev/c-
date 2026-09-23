@@ -5,6 +5,16 @@
 
 ---
 
+## 0. Where we were
+
+Nothing existed. [Day 0](day-00-setup.md) built the repo, pinned the SDK and scaffolded
+two empty projects, but no C# had been written. The console project contained the
+template's two-line "Hello, World!" and nothing else.
+
+*Previous: [Day 0 — Setup](day-00-setup.md)*
+
+---
+
 ## 1. What we built today
 
 [Player.cs](../../src/Esports.Console/Player.cs) — the first C# class. It holds four
@@ -217,7 +227,7 @@ dotnet build src/Esports.Console --nologo
 
 ---
 
-## 11. What tomorrow depends on
+## 11. What's next
 
 Working and committed:
 - [Player.cs](../../src/Esports.Console/Player.cs) — data, constructor, three methods

@@ -5,6 +5,21 @@
 
 ---
 
+## 0. Where we were
+
+[Day 1](day-01-types-classes-encapsulation.md) produced a single
+[Player](../../src/Esports.Console/Player.cs) class — four pieces of data, a
+constructor, and three methods. Its rating could only change through `RecordWin()` and
+`RecordLoss()`, because `private set` closed the door on everything else.
+
+**What was missing:** a player belongs to a team, and a team has five of them. There
+was no way to hold more than one of anything. Five separate `Player1..Player5` fields
+would have been Day 1's loose-variables problem all over again, one level up.
+
+*Previous: [Day 1 — Types, classes, encapsulation](day-01-types-classes-encapsulation.md)*
+
+---
+
 ## 1. What we built today
 
 [Team.cs](../../src/Esports.Console/Team.cs) — a team with a roster stored in a
@@ -233,7 +248,7 @@ dotnet run --project src/Esports.Console
 
 ---
 
-## 11. What tomorrow depends on
+## 11. What's next
 
 Working and committed:
 - [Player.cs](../../src/Esports.Console/Player.cs) — encapsulated, constructor, methods

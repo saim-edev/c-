@@ -5,6 +5,22 @@
 
 ---
 
+## 0. Where we were
+
+[Day 2](day-02-collections-and-references.md) added
+[Team](../../src/Esports.Console/Team.cs), holding its roster in a `List<Player>` with
+the five-player limit enforced inside the class. It also delivered the biggest surprise
+so far: **two variables can point at the same object**, so `Player b = a;` followed by
+`b.RecordWin()` changes `a` too.
+
+**What was missing:** two teams need something to play. A match needs a result — and
+that immediately raises a question Day 2 could not answer: are two identical results
+"the same" result? And what does a match hold as its score *before* it has been played?
+
+*Previous: [Day 2 — Collections and references](day-02-collections-and-references.md)*
+
+---
+
 ## 1. What we built today
 
 - [MatchScore.cs](../../src/Esports.Console/MatchScore.cs) — a `record` holding a
@@ -384,7 +400,7 @@ dotnet run --project src/Esports.Console
 
 ---
 
-## 11. What tomorrow depends on
+## 11. What's next
 
 Working and committed:
 - [MatchScore.cs](../../src/Esports.Console/MatchScore.cs) — record with behaviour and a guard

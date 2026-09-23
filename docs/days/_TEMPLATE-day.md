@@ -5,6 +5,16 @@
 
 ---
 
+## 0. Where we were
+
+<What existed before today, and what was wrong or missing about it. One short
+paragraph. Link to yesterday's note. This is what makes the notes a continuous
+story instead of disconnected entries.>
+
+*Previous: [Day NN-1](day-NN-1-slug.md)*
+
+---
+
 ## 1. What we built today
 
 <One paragraph, plain language. What exists now that didn't before.>
@@ -89,7 +99,13 @@ answers down too — the gap between my answer and the real one is the lesson.>
 
 ---
 
-## 11. What tomorrow depends on
+## 11. What's next
 
-<What must be working before Day NN+1 starts. If something is half-done,
-it goes here so tomorrow doesn't start on sand.>
+<What the next topic is, and WHY it follows from this one. Then any loose ends
+carried forward explicitly, so they cannot get lost.>
+
+**Working and committed:**
+-
+
+**Loose ends carried forward:**
+-

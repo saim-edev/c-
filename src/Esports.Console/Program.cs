@@ -1,73 +1,86 @@
-// ---- two teams ----
+// ---- build four teams ----
 
-Team t1 = new Team("T1", "T1");
-t1.AddPlayer(new Player("Faker", 1847));
-t1.AddPlayer(new Player("Gumayusi", 1791));
-
-Team gen = new Team("Gen.G", "GEN");
-gen.AddPlayer(new Player("Chovy", 1792));
-gen.AddPlayer(new Player("Peyz", 1760));
+Team t1 = MakeTeam("T1", "T1", 1847, 1791, 1823);
+Team gen = MakeTeam("Gen.G", "GEN", 1792, 1760, 1744);
+Team hle = MakeTeam("Hanwha", "HLE", 1755, 1730, 1718);
+Team dk = MakeTeam("Dplus", "DK", 1740, 1712, 1699);
 
 
-// ---- a match walks through its lifecycle ----
+// ---- register them ----
 
-Match final = new Match(t1, gen);
+Tournament lck = new Tournament("LCK Spring");
 
-Console.WriteLine("--- the happy path ---");
-Console.WriteLine(final);
+lck.Register(t1);
+lck.Register(gen);
+lck.Register(hle);
+lck.Register(dk);
 
-final.Start();
-Console.WriteLine(final);
-
-final.RecordResult(3, 1);
-Console.WriteLine(final);
-
-Console.WriteLine($"Finished? {final.IsFinished}   Winner: {final.Winner?.Name ?? "-"}");
+Console.WriteLine($"{lck.TeamCount} teams registered");
 
 
-// ---- illegal moves are refused, not silently allowed ----
+// ---- work out who plays who ----
+
+lck.GenerateMatches();
+
+Console.WriteLine($"{lck.MatchCount} matches generated");
+Console.WriteLine();
+
+foreach (Match m in lck.Matches)
+{
+    Console.WriteLine($"  {m}");
+}
+
+
+// ---- play them all ----
 
 Console.WriteLine();
-Console.WriteLine("--- illegal transitions ---");
+Console.WriteLine("--- playing every match ---");
 
-TryThis("start a finished match", () => final.Start());
-TryThis("cancel a finished match", () => final.Cancel());
-TryThis("record a result twice", () => final.RecordResult(2, 0));
+Random rng = new Random(42);   // fixed seed, so every run is the same
 
-Match early = new Match(t1, gen);
-TryThis("record a result before starting", () => early.RecordResult(2, 0));
-
-
-// ---- the other two endings ----
-
-Console.WriteLine();
-Console.WriteLine("--- forfeit and cancel ---");
-
-Match noShow = new Match(t1, gen);
-noShow.Start();
-noShow.Forfeit(t1);
-Console.WriteLine(noShow);
-Console.WriteLine($"Winner: {noShow.Winner?.Name ?? "-"}");
-
-Match calledOff = new Match(t1, gen);
-calledOff.Cancel();
-Console.WriteLine(calledOff);
-Console.WriteLine($"Winner: {calledOff.Winner?.Name ?? "-"}");
+foreach (Match m in lck.Matches)
+{
+    m.Start();
+    m.RecordResult(rng.Next(0, 4), rng.Next(0, 4));
+    Console.WriteLine($"  {m}");
+}
 
 
-// ---- a draw still has no winner ----
+// ---- the rules hold ----
 
 Console.WriteLine();
-Console.WriteLine("--- a draw ---");
-Match group = new Match(t1, gen);
-group.Start();
-group.RecordResult(1, 1);
-Console.WriteLine(group);
-Console.WriteLine($"Winner: {group.Winner?.Name ?? "nobody - it was a draw"}");
+Console.WriteLine("--- what the tournament refuses ---");
+
+TryThis("register a team after fixtures exist", () => lck.Register(t1));
+TryThis("generate fixtures twice", () => lck.GenerateMatches());
+TryThis("register the same team twice", () =>
+{
+    Tournament t = new Tournament("Test");
+    t.Register(t1);
+    t.Register(t1);
+});
+TryThis("generate fixtures with one team", () =>
+{
+    Tournament t = new Tournament("Test");
+    t.Register(t1);
+    t.GenerateMatches();
+});
 
 
-// A small helper so each attempt below reads as one line.
-// `Action` is "a thing that can be run and returns nothing".
+// ---- helpers ----
+
+static Team MakeTeam(string name, string tag, params int[] ratings)
+{
+    Team team = new Team(name, tag);
+
+    for (int i = 0; i < ratings.Length; i++)
+    {
+        team.AddPlayer(new Player($"{tag}-p{i + 1}", ratings[i]));
+    }
+
+    return team;
+}
+
 static void TryThis(string what, Action attempt)
 {
     try

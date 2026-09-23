@@ -3,14 +3,14 @@
 **What this file is for:** every day teaches one small thing. This file is where those
 small things are shown joining up. When something feels disconnected, read this.
 
-Updated every day. Last updated: **Day 5**.
+Updated every day. Last updated: **Day 6**.
 
 ---
 
 ## Where we are right now
 
 ```
-  DAY 0 ─────────── DAY 5                DAY 9 ──── DAY 18        DAY 19 ─── DAY 25
+  DAY 0 ─────────── DAY 6                DAY 9 ──── DAY 18        DAY 19 ─── DAY 25
   ══════════════════════                 ═══════════════          ═══════════════
   you are here                           not started              not started
 
@@ -28,21 +28,24 @@ Updated every day. Last updated: **Day 5**.
 
 ## What exists today
 
-Ten files. That is the whole program.
+Eleven files. That is the whole program.
 
 ```
-  F:\saim    src\Esports.Console      Program.cs                   ← the entry point. Builds teams, runs tournaments.
+  F:\saim\
+    src\Esports.Console\
+      Program.cs                   <- the entry point. Builds teams, runs tournaments.
 
-      Player.cs                    ← a person. Rating only changes via methods.
-      Team.cs                      ← up to 5 players. Enforces that limit itself.
-      Match.cs                     ← pairs two teams. A lifecycle it cannot cheat.
-      MatchScore.cs                ← a result, e.g. 3-1. Knows if it was a draw.
-      MatchState.cs                ← the five states a match can be in.
-      Tournament.cs                ← holds teams + fixtures. Knows NO format.
+      Player.cs                    <- a person. Rating only changes via methods.
+      Team.cs                      <- up to 5 players. Enforces that limit itself.
+      Match.cs                     <- pairs two teams. A lifecycle it cannot cheat.
+      MatchScore.cs                <- a result, e.g. 3-1. Knows if it was a draw.
+      MatchState.cs                <- the five states a match can be in.
+      Tournament.cs                <- holds teams + fixtures. Knows NO format.
 
-      ITournamentFormat.cs         ← the contract: teams in, matches out.
-      RoundRobinFormat.cs          ← everyone plays everyone.
-      SingleEliminationFormat.cs   ← lose once, you are out.
+      ITournamentFormat.cs         <- the contract: teams in, matches out.
+      TournamentFormat.cs          <- abstract base. Shared validation, once.
+      RoundRobinFormat.cs          <- everyone plays everyone.
+      SingleEliminationFormat.cs   <- lose once, you are out.
 ```
 
 ### How they fit together
@@ -62,12 +65,21 @@ Ten files. That is the whole program.
    │                                │  knows │  Name                │
    │    Register()                  │  ONLY  │  GenerateMatches()   │
    │    GenerateMatches()           │  this  └──────────┬───────────┘
-   │    Matches  (IReadOnlyList)    │            ┌──────┴───────┐
-   └───────────────┬────────────────┘            ▼              ▼
-                   │ holds                 RoundRobin    SingleElimination
-                   ▼                        Format            Format
-   ┌──────────────────────────┐              6 matches      2 matches
-   │  Match                   │              (4 teams)      (4 teams)
+   │    Matches  (IReadOnlyList)    │                       │ implemented by
+   └───────────────┬────────────────┘                       ▼
+                   │ holds              ┌────────────────────────────────┐
+                   ▼                    │  TournamentFormat  (abstract)  │
+   ┌──────────────────────────┐         │    GenerateMatches()  <- shared │
+   │  Match                   │         │      checks >= 2 teams, then    │
+   │    HomeTeam ─────────────┼──────┐  │      calls BuildFixtures()      │
+   │    AwayTeam ─────────────┼──────┤  │    BuildFixtures()   <- A HOLE  │
+   │    State  ───────────────┼──┐   │  └───────────────┬────────────────┘
+   │    Score? ────────┐      │  │   │           ┌──────┴───────┐
+   │    Start()        │      │  │   │           ▼              ▼
+   │    RecordResult() │      │  │   │     RoundRobin    SingleElimination
+   │    Winner         │      │  │   │      Format            Format
+   └───────────────────┼──────┘  │   │      6 matches      2 matches
+                       │         │   │      (4 teams)      (4 teams)
    │    HomeTeam ─────────────┼──────┐
    │    AwayTeam ─────────────┼──────┤
    │    State  ───────────────┼──┐   │
@@ -124,6 +136,7 @@ it existed.**
 | 6 | [Tournament.cs](../src/Esports.Console/Tournament.cs) | Needs `Team` and `Match`. Organises what already exists. |
 | 7 | [ITournamentFormat.cs](../src/Esports.Console/ITournamentFormat.cs) | Extracted from `Tournament` **after** a second format was needed — not designed up front. |
 | 8-9 | [RoundRobinFormat.cs](../src/Esports.Console/RoundRobinFormat.cs), [SingleEliminationFormat.cs](../src/Esports.Console/SingleEliminationFormat.cs) | Need the contract to exist before they can promise to fill it. |
+| 10 | [TournamentFormat.cs](../src/Esports.Console/TournamentFormat.cs) | Extracted **after** both formats existed and the duplication was visible. Same rule as the interface: never designed up front. |
 
 **The general rule, and it holds everywhere in backend work:** build from the inside
 out. The thing with the fewest dependencies first. If file A mentions file B, B has to
@@ -152,6 +165,7 @@ Every small idea, traced from the day that introduced it to where it will matter
 | **state machine** | [Day 4](days/day-04-enums-and-state-machines.md) | A result could be recorded on a match that never started | API endpoints refusing illegal operations, with proper HTTP status codes |
 | **interface** | [Day 5](days/day-05-interfaces-and-polymorphism.md) | Two tournament formats; an `if` would make `Tournament` know every format forever | **Day 10:** the database is handed in exactly this way — that is dependency injection. Also the seam that makes testing possible. |
 | **`IReadOnlyList<T>`** | [Day 5](days/day-05-interfaces-and-polymorphism.md) | Handing out the real `List<T>` let callers bypass the rules | Every API response — expose the narrowest thing that works |
+| **abstract class** | [Day 6](days/day-06-abstract-classes.md) | Both formats duplicated the same validation, and nothing **forced** a new one to include it | Base controllers on Day 9; `DbContext` on Day 11 is itself a class you inherit from |
 
 **Notice the pattern in the right-hand column.** Almost nothing is thrown away. The
 console app is not a toy that gets deleted — it is the same code, later given a
@@ -172,6 +186,7 @@ Every single day so far has been the same move in a different costume:
 | 3 | A negative score; a team playing itself | guards in `Create` and the constructor |
 | 4 | Recording a result on a match that never started | the state machine |
 | 5 | A caller `.Add()`-ing straight into a tournament's fixture list | `IReadOnlyList<T>` |
+| 6 | A new format forgetting the shared validation | `abstract` — the build fails |
 
 A senior developer reaches for this instinctively. The question is never *"will I
 remember to check?"* — it is **"where do I put this so nobody can skip it?"**
@@ -305,6 +320,7 @@ to be read cold:
 - [Nullability and guards](concepts/nullability-and-guards.md) — saying "nothing", refusing invalid objects
 - [Enums and state machines](concepts/enums-and-state-machines.md) — modelling a lifecycle
 - [Interfaces and polymorphism](concepts/interfaces-and-polymorphism.md) — one call, many answers
+- [Abstract classes vs interfaces](concepts/abstract-classes.md) — shared code, and the one-parent limit
 - [Debugging](concepts/debugging.md) — the bug log and the method
 
 Plus [GLOSSARY.md](GLOSSARY.md) for terms, [CHEATSHEET.md](CHEATSHEET.md) for C# beside

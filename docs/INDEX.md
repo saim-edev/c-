@@ -15,6 +15,7 @@ piece built so far fits together, as one flow.
 | [nullability-and-guards](concepts/nullability-and-guards.md) | saying "nothing"; refusing invalid objects |
 | [enums-and-state-machines](concepts/enums-and-state-machines.md) | modelling a lifecycle |
 | [interfaces-and-polymorphism](concepts/interfaces-and-polymorphism.md) | one call, many answers; when NOT to use one |
+| [abstract-classes](concepts/abstract-classes.md) | shared code that can't be skipped; interface vs abstract |
 | [debugging](concepts/debugging.md) | the bug log and the method |
 | [GLOSSARY](GLOSSARY.md) · [CHEATSHEET](CHEATSHEET.md) · [DECISIONS](DECISIONS.md) | terms · C# vs functional · why X not Y |
 
@@ -31,7 +32,7 @@ One row per day. Filled in as each day completes.
 | 3 | Equality, records, and how to say "nothing" | [day-03](days/day-03-equality-records-and-nothing.md) | `day-03` | `==` vs contents, `record`, `with`, nullable `?`, `?.`, `??`, guards |
 | 4 | Enums, and a match that can't cheat | [day-04](days/day-04-enums-and-state-machines.md) | `day-04` | `enum`, state machine, guarded transitions, `switch` expression |
 | 5 | Interfaces: one call, two different answers | [day-05](days/day-05-interfaces-and-polymorphism.md) | `day-05` | `Tournament`, `interface`, polymorphism, `IReadOnlyList<T>` |
-| 6 | Inheritance, interfaces, polymorphism | — | — | `callvirt`, v-tables, abstract classes, strategies |
+| 6 | Abstract classes: shared code that can't be skipped | [day-06](days/day-06-abstract-classes.md) | `day-06` | `abstract`, `override`, `protected`, template method |
 | 7 | Absence, failure, cleanup | — | — | nullability, exceptions, GC, `IDisposable` |
 | 8 | Functions as values | — | — | delegates, lambdas, LINQ, events, async intro |
 | 9 | Kestrel and the life of a request | — | — | HTTP, middleware, routing, the 23-step journey |

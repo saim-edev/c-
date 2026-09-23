@@ -142,6 +142,40 @@ with one example, and an interface with one implementation is usually ceremony.
 would have.
 **Date:** 2026-09-23
 
+## D14 — An abstract base class under the interface, not shared code duplicated
+
+**Alternatives:** leave the `teams.Count < 2` check duplicated in each format; or put
+it in `Tournament` before calling the format.
+**Why:** duplication was the small problem. The real one is that **nothing forced** a
+new format to include the check — a third format could ship without it. Making
+`BuildFixtures` abstract means a format cannot exist without going through
+`GenerateMatches`, which validates first. Verified: `error CS0534` if a subclass tries
+to skip it. Putting the check in `Tournament` was rejected because the rule belongs to
+formats, and a format called directly (as the tests do) would bypass it.
+**Cost:** spends the single inheritance slot those classes have. A format can implement
+many interfaces but inherit from exactly one class.
+**Date:** 2026-09-23
+
+## D15 — `BuildFixtures` is `protected`, not `public`
+
+**Alternatives:** `public`, which is the reflex.
+**Why:** a public `BuildFixtures` could be called directly, skipping the validation in
+`GenerateMatches`. That is exactly the bug `MatchScore` had, where `Create()` validated
+and `new` sat open beside it. Verified closed: `error CS0122`.
+**Cost:** none.
+**Date:** 2026-09-23
+
+## D16 — Keep `ITournamentFormat` even though the abstract class now implements it
+
+**Alternatives:** delete the interface and have `Tournament` depend on
+`TournamentFormat` directly.
+**Why:** `Tournament` should depend on the narrowest thing that works. A future format
+could implement the interface without inheriting the base.
+**Cost:** honest — with only two formats, both inheriting the base, the interface is
+barely earning its place. It is one file, and it keeps an option open. Deleting can be
+decided later with better information; un-deleting is harder.
+**Date:** 2026-09-23
+
 ---
 
 ## Decisions already made in the plan, to be recorded here as they land

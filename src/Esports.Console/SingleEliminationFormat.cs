@@ -1,33 +1,31 @@
 // Lose once and you are out.
 //
-// Fills the same contract as RoundRobinFormat, and does something completely
-// different with it. Same input, same output type, different answer.
+// Inherits the same shared validation as RoundRobinFormat, then adds one
+// rule of its own that no other format needs.
 
-public class SingleEliminationFormat : ITournamentFormat
+public class SingleEliminationFormat : TournamentFormat
 {
-    public string Name => "Single elimination";
+    public override string Name => "Single elimination";
 
-    public List<Match> GenerateMatches(IReadOnlyList<Team> teams)
+    protected override List<Match> BuildFixtures(IReadOnlyList<Team> teams)
     {
-        if (teams.Count < 2)
-        {
-            throw new ArgumentException(
-                $"Single elimination needs at least 2 teams, got {teams.Count}");
-        }
-
-        // An odd count means somebody has nobody to play. Real tournaments
-        // handle this with byes; refusing it keeps this readable, and an
-        // honest limitation beats a silently wrong bracket.
+        // The "at least 2 teams" check already ran, in the base class.
+        // This rule belongs HERE and not in the base, because it is not
+        // true of tournaments generally - a league with 3 teams is fine.
+        // Only a knockout leaves somebody with nobody to play.
+        //
+        // Real tournaments handle odd counts with byes. Refusing keeps this
+        // readable, and an honest limitation beats a silently wrong bracket.
         if (teams.Count % 2 != 0)
         {
             throw new ArgumentException(
-                $"Single elimination needs an even number of teams, got {teams.Count}");
+                $"{Name} needs an even number of teams, got {teams.Count}");
         }
 
         List<Match> matches = new List<Match>();
 
-        // Seeded pairing: strongest plays weakest. The list is assumed to be
-        // in seed order, so index 0 is the top seed.
+        // Seeded pairing: strongest plays weakest. The list is assumed to
+        // be in seed order, so index 0 is the top seed.
         //
         //   4 teams:          8 teams:
         //     0 v 3             0 v 7
@@ -44,10 +42,8 @@ public class SingleEliminationFormat : ITournamentFormat
             matches.Add(new Match(teams[i], teams[teams.Count - 1 - i]));
         }
 
-        // NOTE: this is round ONE only. Later rounds cannot be built yet -
-        // who plays in the semi-final depends on who wins the quarter-final,
-        // and none of these have been played. Advancing winners into the
-        // next round comes later.
+        // NOTE: round ONE only. Who plays in the semi-final depends on who
+        // wins the quarter-final, and none of these have been played.
         return matches;
     }
 }

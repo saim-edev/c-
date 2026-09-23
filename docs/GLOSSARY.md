@@ -109,3 +109,25 @@ to `List<T>`. A real guarantee means copying, and paying for the copy.
 **Dependency injection** — handing an object the things it needs from outside, rather
 than letting it build them itself. `Tournament` takes an `ITournamentFormat` in its
 constructor. Done by hand on Day 5; automated by a container on Day 10.
+
+**Abstract class** — a class that cannot be created directly and exists only to be
+inherited from. It can hold shared code *and* declare holes that every subclass must
+fill. `new TournamentFormat()` is `error CS0144`.
+
+**Abstract member** — a method or property with no body. Any concrete subclass must
+supply one, or the build fails with `error CS0534`. This is what makes shared setup
+impossible to skip.
+
+**`override`** — "I am supplying the body the base class left empty". Required; leaving
+it off makes the compiler complain about hiding an inherited member.
+
+**`protected`** — visible to this class and anything inheriting from it, nothing else.
+Sits between `private` and `public`.
+
+**Template method** — a base class method that does the shared work and then calls an
+abstract method the subclass supplies. The base controls the order; the subclass fills
+the gap. `GenerateMatches` calling `BuildFixtures` is one.
+
+**Composition vs inheritance** — composition is *handing a thing in* (`Tournament`
+takes a format). Inheritance is *being a kind of thing* (`RoundRobinFormat` is a
+`TournamentFormat`). Prefer composition: you get many, and it stays flexible.

@@ -1,21 +1,23 @@
 // Everyone plays everyone, once.
 //
-// `: ITournamentFormat` means "this class fills that contract". The compiler
-// now checks that Name and GenerateMatches both exist with exactly the right
-// shape. Delete either one and this file stops compiling.
+// `: TournamentFormat` means "inherit from that class". It brings along
+// GenerateMatches() and the shared validation, already written.
+//
+// Compare with yesterday's `: ITournamentFormat`, which brought nothing and
+// only demanded. A base class gives AND demands.
 
-public class RoundRobinFormat : ITournamentFormat
+public class RoundRobinFormat : TournamentFormat
 {
-    public string Name => "Round robin";
+    // `override` = "I am supplying the body the base class left empty".
+    // Leave this out and the file does not compile: the base declared Name
+    // abstract, so a concrete subclass has to fill it.
+    public override string Name => "Round robin";
 
-    public List<Match> GenerateMatches(IReadOnlyList<Team> teams)
+    // Also `override`, and also `protected` - the access has to match what
+    // the base declared. Nothing outside can call this directly, so nobody
+    // can reach the fixtures without passing the validation first.
+    protected override List<Match> BuildFixtures(IReadOnlyList<Team> teams)
     {
-        if (teams.Count < 2)
-        {
-            throw new ArgumentException(
-                $"Round robin needs at least 2 teams, got {teams.Count}");
-        }
-
         List<Match> matches = new List<Match>();
 
         // The inner loop starts at i + 1, not 0. That one character is what

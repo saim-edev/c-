@@ -62,6 +62,47 @@ and the build goes to zero warnings.
 **Cost:** none.
 **Date:** 2026-09-22
 
+## D7 — `Player`/`Team`/`Match` are classes, `MatchScore` is a record
+
+**Alternatives:** make everything a record (immutability feels right), or everything a
+class (fewer concepts).
+**Why:** they answer the identity-vs-value question differently. Two people called
+"Faker" at 1847 are two different people, so `Player` needs identity-based equality.
+Any 3-1 is any other 3-1, so `MatchScore` needs content-based equality. Using one
+choice for both would be wrong for one of them, and wrong *quietly*.
+**Cost:** you must make this call per type, and a mistake fails silently rather than
+loudly.
+**Date:** 2026-09-22
+
+## D8 — Hand-written `ToString()` on `MatchScore`
+
+**Alternatives:** keep the record's generated one.
+**Why:** a record's auto-generated `ToString()` lists **every public property including
+computed ones**. Once `IsDraw`, `HomeWon`, `AwayWon`, `Margin` and `GamesPlayed` were
+added, a score printed as a seven-field wall instead of `3-1`.
+**Cost:** one more line to maintain if the shape changes.
+**Date:** 2026-09-22
+
+## D9 — Validate in constructors and factory methods, not at call sites
+
+**Alternatives:** check at each place a value is used.
+**Why:** guarding at construction means an invalid object can never exist anywhere in
+the program — not even briefly. Three rules now work this way: a team cannot play
+itself, a result cannot be recorded twice, a score cannot be negative. Same discipline
+as a smart constructor.
+**Cost:** exceptions rather than a `Result` type, so failure is not visible in the
+signature. C# has no idiomatic `Result`, so this is the convention.
+**Date:** 2026-09-22
+
+## D10 — Teaching approach recorded in `CLAUDE.md`
+
+**Alternatives:** leave it implicit, or only in Claude's private memory.
+**Why:** the approach was arrived at by correction during Day 1 (too much jargon,
+runtime theory before syntax, narrating edit timelines the learner cannot see).
+Checking it into the repo means it survives any session and is visible/editable.
+**Cost:** none.
+**Date:** 2026-09-22
+
 ---
 
 ## Decisions already made in the plan, to be recorded here as they land

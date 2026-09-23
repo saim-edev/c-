@@ -1,50 +1,68 @@
-// =====================================================================
-//  1. A value type: int. The variable holds the NUMBER itself.
-// =====================================================================
-
-int x = 10;
-int y = x;          // y gets a COPY of the number
-y = y + 5;
-
-Console.WriteLine("--- int (value type) ---");
-Console.WriteLine($"x = {x}");      // 10 - untouched
-Console.WriteLine($"y = {y}");      // 15
-
-
-// =====================================================================
-//  2. A reference type: Player. The variable holds the ADDRESS of an
-//     object living elsewhere. Copying the variable copies the address.
-// =====================================================================
-
-Player a = new Player("Faker", 1847);
-Player b = a;       // b gets a COPY OF THE ARROW, not a copy of the player
-b.RecordWin();      // we only touch b...
-
-Console.WriteLine();
-Console.WriteLine("--- Player (reference type) ---");
-Console.WriteLine($"a.Rating = {a.Rating}");   // ...but a changed too
-Console.WriteLine($"b.Rating = {b.Rating}");
-
-// ReferenceEquals asks the blunt question: are these the same object?
-Console.WriteLine($"Same object? {ReferenceEquals(a, b)}");
-
-
-// =====================================================================
-//  3. Why this matters: the same player added to two teams.
-// =====================================================================
-
-Player shared = new Player("Faker", 1847);
+// ---- two teams ----
 
 Team t1 = new Team("T1", "T1");
+t1.AddPlayer(new Player("Faker", 1847));
+t1.AddPlayer(new Player("Gumayusi", 1791));
+t1.AddPlayer(new Player("Keria", 1823));
+
 Team gen = new Team("Gen.G", "GEN");
+gen.AddPlayer(new Player("Chovy", 1792));
+gen.AddPlayer(new Player("Peyz", 1760));
+gen.AddPlayer(new Player("Lehends", 1744));
 
-t1.AddPlayer(shared);
-gen.AddPlayer(shared);      // NOT a second player - the same one, twice
 
-shared.RecordWin();
+// ---- a match that has not been played yet ----
+
+Match final = new Match(t1, gen);
+
+Console.WriteLine("--- before kickoff ---");
+Console.WriteLine(final);
+Console.WriteLine($"Played? {final.HasBeenPlayed}");
+Console.WriteLine($"Winner: {final.Winner?.Name ?? "nobody yet"}");
+
+
+// ---- play it ----
+
+final.RecordResult(3, 1);
 
 Console.WriteLine();
-Console.WriteLine("--- one player on two rosters ---");
-Console.WriteLine($"T1    average: {t1.AverageRating}");
-Console.WriteLine($"Gen.G average: {gen.AverageRating}");
-Console.WriteLine("Both moved, because both rosters point at the SAME player.");
+Console.WriteLine("--- after the match ---");
+Console.WriteLine(final);
+Console.WriteLine($"Played? {final.HasBeenPlayed}");
+Console.WriteLine($"Winner: {final.Winner?.Name ?? "nobody yet"}");
+Console.WriteLine($"Margin: {final.Score?.Margin}");
+
+
+// ---- the rules defend themselves ----
+
+Console.WriteLine();
+Console.WriteLine("--- what the rules refuse ---");
+
+try
+{
+    final.RecordResult(2, 0);
+}
+catch (InvalidOperationException ex)
+{
+    Console.WriteLine($"refused: {ex.Message}");
+}
+
+try
+{
+    Match nonsense = new Match(t1, t1);
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"refused: {ex.Message}");
+}
+
+
+// ---- a draw has no winner ----
+
+Match groupGame = new Match(t1, gen);
+groupGame.RecordResult(1, 1);
+
+Console.WriteLine();
+Console.WriteLine("--- a draw ---");
+Console.WriteLine(groupGame);
+Console.WriteLine($"Winner: {groupGame.Winner?.Name ?? "nobody - it was a draw"}");

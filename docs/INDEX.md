@@ -7,7 +7,7 @@ One row per day. Filled in as each day completes.
 | 0 | Setup: repo, SDK pin, scaffolds | [day-00](days/day-00-setup.md) | `day-00` | git, .gitignore, global.json, MSBuild, npm |
 | 1 | Types, classes, and encapsulation | [day-01](days/day-01-types-classes-encapsulation.md) | `day-01` | types, classes, constructors, methods, `private set` |
 | 2 | Collections, and what a variable actually holds | [day-02](days/day-02-collections-and-references.md) | `day-02` | `List<T>`, `foreach`, computed properties, value vs reference, aliasing |
-| 3 | Class anatomy | — | — | classes, properties, `this`, encapsulation, enums |
+| 3 | Equality, records, and how to say "nothing" | [day-03](days/day-03-equality-records-and-nothing.md) | `day-03` | `==` vs contents, `record`, `with`, nullable `?`, `?.`, `??`, guards |
 | 4 | Identity vs value | — | — | records, equality, `GetHashCode`, immutability |
 | 5 | Collections & generics from the inside | — | — | `List<T>`, `Dictionary<K,V>`, generics, assemblies |
 | 6 | Inheritance, interfaces, polymorphism | — | — | `callvirt`, v-tables, abstract classes, strategies |

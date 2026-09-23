@@ -7,6 +7,9 @@ Appended to as terms come up. Alphabetical.
 
 ---
 
+**Aliasing** — two variables holding the address of the *same* object, so a change
+made through one is visible through the other. The default for any `class` you write.
+
 **Assembly** — a compiled `.dll` or `.exe`. Contains IL (the half-compiled code),
 metadata (a full description of every type and method inside), and a manifest
 (name, version, what it depends on). The metadata is why C# needs no header files
@@ -41,3 +44,32 @@ gives you both.
 **TFM (Target Framework Moniker)** — the `net10.0` string in a `.csproj`. It says
 which framework version you are building *for*. This is a different knob from the
 SDK version you are building *with*.
+
+**Guard** — a check at the top of a constructor or method that throws if the input is
+invalid. Its value is that an invalid object then cannot exist *at all* — not even
+briefly in a variable someone forgot about.
+
+**Identity vs value** — the question that decides `class` vs `record`. A thing with
+identity survives its values changing (a player is still that player after a rating
+change). A value simply *is* its contents (any 3-1 score is any other 3-1 score).
+
+**Nullable reference type (`string?`, `MatchScore?`)** — an annotation meaning "this
+might be nothing". **Erased at runtime** — `MatchScore?` and `MatchScore` compile to
+identical code. It drives compiler warnings only; it is a linter, not a guarantee.
+
+**Override** — replace a method inherited from a base type. Every type in C# inherits
+`ToString()`, `Equals()` and `GetHashCode()` from `object`, and `override` swaps in
+your own version.
+
+**Property** — looks like a field to callers but is really a pair of methods. That is
+why `PlayerCount` can run code on every read while reading like stored data.
+
+**Record** — a type whose equality is based on contents rather than address. One line
+generates the constructor, `==`, `Equals`, `GetHashCode`, `ToString` and `with`.
+
+**Reference type / value type** — a value type variable holds the value itself; a
+reference type variable holds the *address* of an object elsewhere. Copying a value
+type copies the data; copying a reference type copies the address.
+
+**Static member** — belongs to the type, not to any one instance. Called as
+`MatchScore.Create(...)`, never `someScore.Create(...)`.

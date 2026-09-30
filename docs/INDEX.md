@@ -16,6 +16,7 @@ piece built so far fits together, as one flow.
 | [enums-and-state-machines](concepts/enums-and-state-machines.md) | modelling a lifecycle |
 | [interfaces-and-polymorphism](concepts/interfaces-and-polymorphism.md) | one call, many answers; when NOT to use one |
 | [abstract-classes](concepts/abstract-classes.md) | shared code that can't be skipped; interface vs abstract |
+| [concurrency-and-threads](concepts/concurrency-and-threads.md) | what happens when many users hit at once; shared vs per-request; `lock`; `await` |
 | [debugging](concepts/debugging.md) | the bug log and the method |
 | [GLOSSARY](GLOSSARY.md) · [CHEATSHEET](CHEATSHEET.md) · [DECISIONS](DECISIONS.md) | terms · C# vs functional · why X not Y |
 

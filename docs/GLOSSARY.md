@@ -145,3 +145,22 @@ and enumerating twice does the work twice.
 
 **`ToList()`** — "do it now, once, and keep the answers". Turns a lazy query into a
 real `List<T>`. Use it when the result will be read more than once.
+
+**Thread pool** — a set of ready-made threads .NET reuses across requests. Creating a
+thread costs ~1 MB of address space and a trip into the OS, so reusing 12 threads for
+thousands of requests is far cheaper than one thread per request. One thread handles one
+request at a time.
+
+**Race condition** — two threads touching the same data at once, interleaving in a way
+that corrupts it. `list.Add()` from two threads can crash or silently lose items;
+`count++` from two threads can lose increments, because it is really read-add-write.
+
+**`lock`** — one thread inside this block at a time, everyone else waits. Fixes shared
+mutable state, at the cost of threads standing in line. Prefer not sharing at all.
+
+**Blocking vs async** — a blocking call holds its thread hostage while it waits, doing
+nothing. `await` makes the thread return to the pool and resume later, possibly on a
+*different* thread. Nothing runs faster; waiting just stops consuming a thread.
+
+**`Task`** — an object meaning "an answer that isn't here yet". **Not a thread** —
+nobody is running anything while a `Task` is pending. C#'s `Promise`.

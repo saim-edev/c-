@@ -131,3 +131,17 @@ the gap. `GenerateMatches` calling `BuildFixtures` is one.
 **Composition vs inheritance** — composition is *handing a thing in* (`Tournament`
 takes a format). Inheritance is *being a kind of thing* (`RoundRobinFormat` is a
 `TournamentFormat`). Prefer composition: you get many, and it stays flexible.
+
+**LINQ** — the set of methods for filtering, transforming, counting and sorting
+sequences. Your standard library renamed: `Where`=filter, `Select`=map,
+`Aggregate`=fold, `OrderBy`=sortBy.
+
+**Lambda** — a function with no name, written inline. `n => n > 5`. Same as a
+JavaScript arrow function.
+
+**Lazy (deferred execution)** — `Where` and `Select` do no work when you write them.
+They return a description of work. Nothing runs until something enumerates the result,
+and enumerating twice does the work twice.
+
+**`ToList()`** — "do it now, once, and keep the answers". Turns a lazy query into a
+real `List<T>`. Use it when the result will be read more than once.

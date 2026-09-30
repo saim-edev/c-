@@ -33,7 +33,7 @@ One row per day. Filled in as each day completes.
 | 4 | Enums, and a match that can't cheat | [day-04](days/day-04-enums-and-state-machines.md) | `day-04` | `enum`, state machine, guarded transitions, `switch` expression |
 | 5 | Interfaces: one call, two different answers | [day-05](days/day-05-interfaces-and-polymorphism.md) | `day-05` | `Tournament`, `interface`, polymorphism, `IReadOnlyList<T>` |
 | 6 | Abstract classes: shared code that can't be skipped | [day-06](days/day-06-abstract-classes.md) | `day-06` | `abstract`, `override`, `protected`, template method |
-| 7 | Absence, failure, cleanup | — | — | nullability, exceptions, GC, `IDisposable` |
+| 7 | A league table, and LINQ | [day-07](days/day-07-standings-and-linq.md) | `day-07` | `Where`, `Select`, `ToList`, `Count`, `Sum`, `OrderByDescending`, laziness |
 | 8 | Functions as values | — | — | delegates, lambdas, LINQ, events, async intro |
 | 9 | Kestrel and the life of a request | — | — | HTTP, middleware, routing, the 23-step journey |
 | 10 | DI, configuration, and Neon | — | — | DI lifetimes, options, user-secrets, Npgsql |

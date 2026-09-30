@@ -3,14 +3,14 @@
 **What this file is for:** every day teaches one small thing. This file is where those
 small things are shown joining up. When something feels disconnected, read this.
 
-Updated every day. Last updated: **Day 6**.
+Updated every day. Last updated: **Day 7**.
 
 ---
 
 ## Where we are right now
 
 ```
-  DAY 0 ─────────── DAY 6                DAY 9 ──── DAY 18        DAY 19 ─── DAY 25
+  DAY 0 ─────────── DAY 7                DAY 9 ──── DAY 18        DAY 19 ─── DAY 25
   ══════════════════════                 ═══════════════          ═══════════════
   you are here                           not started              not started
 
@@ -28,7 +28,7 @@ Updated every day. Last updated: **Day 6**.
 
 ## What exists today
 
-Eleven files. That is the whole program.
+Thirteen files. That is the whole program.
 
 ```
   F:\saim\
@@ -46,73 +46,60 @@ Eleven files. That is the whole program.
       TournamentFormat.cs          <- abstract base. Shared validation, once.
       RoundRobinFormat.cs          <- everyone plays everyone.
       SingleEliminationFormat.cs   <- lose once, you are out.
+
+      TeamStanding.cs              <- one row of a league table.
+      StandingsTable.cs            <- builds and sorts the table.
 ```
 
 ### How they fit together
 
 ```
-   ┌──────────────────────────────────────────────────────────┐
-   │  Program.cs        the entry point - what runs            │
-   └──────────────────────┬───────────────────────────────────┘
-                          │ builds, and hands a format in
-                          ▼
-   ┌────────────────────────────────┐
-   │  Tournament                    │
-   │    Name                        │        ┌──────────────────────┐
-   │    _teams    (private)         │        │  ITournamentFormat   │
-   │    _matches  (private)         │        │   (an interface)     │
-   │    _format ────────────────────┼───────►│                      │
-   │                                │  knows │  Name                │
-   │    Register()                  │  ONLY  │  GenerateMatches()   │
-   │    GenerateMatches()           │  this  └──────────┬───────────┘
-   │    Matches  (IReadOnlyList)    │                       │ implemented by
-   └───────────────┬────────────────┘                       ▼
-                   │ holds              ┌────────────────────────────────┐
-                   ▼                    │  TournamentFormat  (abstract)  │
-   ┌──────────────────────────┐         │    GenerateMatches()  <- shared │
-   │  Match                   │         │      checks >= 2 teams, then    │
-   │    HomeTeam ─────────────┼──────┐  │      calls BuildFixtures()      │
-   │    AwayTeam ─────────────┼──────┤  │    BuildFixtures()   <- A HOLE  │
-   │    State  ───────────────┼──┐   │  └───────────────┬────────────────┘
-   │    Score? ────────┐      │  │   │           ┌──────┴───────┐
-   │    Start()        │      │  │   │           ▼              ▼
-   │    RecordResult() │      │  │   │     RoundRobin    SingleElimination
-   │    Winner         │      │  │   │      Format            Format
-   └───────────────────┼──────┘  │   │      6 matches      2 matches
-                       │         │   │      (4 teams)      (4 teams)
-   │    HomeTeam ─────────────┼──────┐
-   │    AwayTeam ─────────────┼──────┤
-   │    State  ───────────────┼──┐   │
-   │    Score? ────────┐      │  │   │
-   │    Start()        │      │  │   │
-   │    RecordResult() │      │  │   │
-   │    Winner         │      │  │   │
-   └───────────────────┼──────┘  │   │
-                       ▼         ▼   │
-          ┌────────────────┐ ┌──────────────┐
-          │  MatchScore    │ │  MatchState  │
-          │  (a record)    │ │  (an enum)   │
-          │  Home, Away    │ │  Scheduled   │
-          │  IsDraw        │ │  InProgress  │
-          │  Margin        │ │  Completed   │
-          │  Create()      │ │  Forfeited   │
-          └────────────────┘ │  Cancelled   │
-                             └──────────────┘
-                                     │
-   ┌────────────────────────┐        │
-   │  Team                  │◄───────┘ (two per match)
-   │    Name, Tag           │
-   │    _players (private)  │
-   │    AddPlayer()         │
-   │    AverageRating       │
-   └───────────┬────────────┘
-               │ holds up to 5
-               ▼
-   ┌────────────────────────┐
-   │  Player                │
-   │    GamerTag, Rating    │
-   │    RecordWin()         │
-   └────────────────────────┘
+   Program.cs  ---- builds teams, hands a format in ---->  Tournament
+                                                               |
+   Tournament                                                  |
+     Name                                                      |
+     _teams    (private)                                       |
+     _matches  (private)                                       |
+     _format ------------> ITournamentFormat  (interface)      |
+     Register()               Name                             |
+     GenerateMatches()        GenerateMatches()                |
+     Matches (IReadOnlyList)        |                          |
+                                    | implemented by           |
+                                    v                          |
+                       TournamentFormat  (abstract)            |
+                         GenerateMatches()  <- shared          |
+                           checks >= 2 teams, then             |
+                           calls BuildFixtures()               |
+                         BuildFixtures()     <- A HOLE         |
+                                    |                          |
+                          +---------+---------+                |
+                          v                   v                |
+                   RoundRobinFormat   SingleEliminationFormat   |
+                     6 matches            2 matches             |
+                     (4 teams)            (4 teams)             |
+                                                                |
+   Tournament holds -----------------------------------------> List<Match>
+                                                                |
+   Match                                                        v
+     HomeTeam  ------> Team                              StandingsTable
+     AwayTeam  ------> Team                                .Build(teams, matches)
+     State     ------> MatchState  (enum)                        |
+     Score?    ------> MatchScore  (record)                      v
+     Start()                                              List<TeamStanding>
+     RecordResult()                                         one row per team
+     Winner                                                 sorted by points
+
+   Team                        MatchScore (record)      MatchState (enum)
+     Name, Tag                   Home, Away               Scheduled
+     _players (private)          IsDraw                   InProgress
+     AddPlayer()                 Margin                   Completed
+     AverageRating               Create()                 Forfeited
+       |                                                  Cancelled
+       | holds up to 5
+       v
+   Player
+     GamerTag, Rating
+     RecordWin()
 ```
 
 **The important arrow is the one from `Tournament` to `ITournamentFormat`.** It points

@@ -134,7 +134,24 @@ explain it in that message or do not use it.
 `filter` as ideas is not knowing `OrderByDescending`, tuple syntax, named arguments, or
 C#'s laziness rules. Every time this rule has been broken, that thought preceded it.
 
-**6. End the chunk with a stop.** One runnable thing, its real output, and a check-in.
+**6. Show the before AND after, in chat, whenever an existing file is rewritten.**
+Saim cannot see file diffs — he sees only the final state. So a rewrite that is not
+shown in chat is invisible to him, and he is left holding code he never saw arrive.
+Paste the old version and the new version as snippets, side by side where they are
+short enough. This is not optional and it applies to every edit of an existing file.
+
+**7. Never make him read a tool call.** Tool calls render collapsed and truncated on
+his screen — he sees `cat > file.cs <<'EOF'` and then nothing, and the output is cut
+off mid-line. So anything he needs to see goes in the **chat message itself**, as a
+plain fenced block:
+
+- The code that was run, in a ```csharp block.
+- Its output, in its own plain ``` block.
+- Never "here it is on real data:" followed by a bash call. That shows him nothing.
+
+Treat every tool call as invisible. If it is not in the prose, he did not see it.
+
+**8. End the chunk with a stop.** One runnable thing, its real output, and a check-in.
 Do not chain "and then we also..." onto the end.
 
 **If a chunk feels satisfying to write, it is probably too big.** The urge to finish the

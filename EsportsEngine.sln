@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Esports.Console", "src\Espo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Esports.Api", "src\Esports.Api\Esports.Api.csproj", "{3EBE7F08-88FD-4612-B1E3-95C04E10438E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Esports.Core", "src\Esports.Core\Esports.Core.csproj", "{7D775AF9-F313-44D9-B77E-CFB36EBED579}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,18 @@ Global
 		{3EBE7F08-88FD-4612-B1E3-95C04E10438E}.Release|x64.Build.0 = Release|Any CPU
 		{3EBE7F08-88FD-4612-B1E3-95C04E10438E}.Release|x86.ActiveCfg = Release|Any CPU
 		{3EBE7F08-88FD-4612-B1E3-95C04E10438E}.Release|x86.Build.0 = Release|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Debug|x64.Build.0 = Debug|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Debug|x86.Build.0 = Debug|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Release|x64.ActiveCfg = Release|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Release|x64.Build.0 = Release|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Release|x86.ActiveCfg = Release|Any CPU
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,5 +64,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C3D5F001-C113-4982-8536-6CEDD1A87B79} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{3EBE7F08-88FD-4612-B1E3-95C04E10438E} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{7D775AF9-F313-44D9-B77E-CFB36EBED579} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

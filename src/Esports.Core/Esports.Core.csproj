@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    A CLASS LIBRARY. Note what is missing compared to the other two projects:
+    there is no <OutputType>Exe</OutputType>, so this produces a .dll and
+    nothing else. It has no entry point and cannot be run.
+
+    That is the point. This project holds the rules of the game and knows
+    nothing about terminals or web servers. TargetFramework and Nullable are
+    inherited from ..\..\Directory.Build.props.
+  -->
+  <PropertyGroup>
+    <RootNamespace>Esports.Core</RootNamespace>
+  </PropertyGroup>
+
+</Project>

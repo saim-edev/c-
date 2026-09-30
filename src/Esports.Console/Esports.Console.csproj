@@ -6,6 +6,9 @@
     The only thing this project needs to say for itself is that it produces
     an executable (Exe) rather than a library (the default).
   -->
+  <ItemGroup>
+    <ProjectReference Include="..\Esports.Core\Esports.Core.csproj" />
+  </ItemGroup>
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Esports.Console</RootNamespace>

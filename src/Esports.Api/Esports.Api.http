@@ -1,6 +1,4 @@
-@Esports.Api_HostAddress = http://localhost:5270
+@host = http://localhost:5270
 
-GET {{Esports.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
+### Is the API alive?
+GET {{host}}/health

@@ -13,64 +13,131 @@
 // ============================================================================
 
 
-// Reads configuration (appsettings.json, environment variables, command line)
-// and gives us a builder to register things on.
 var builder = WebApplication.CreateBuilder(args);
 
 
 // ---- HALF 1: what this app will need -------------------------------------
 //
 // These lines do NOT create anything. They add entries to a list, which
-// Build() below turns into real objects. See it as writing a shopping list,
-// not doing the shopping.
+// Build() below turns into real objects. A shopping list, not the shopping.
 
-// Lets the app use controller classes. Nothing uses them yet - the endpoint
-// below is written the other way, directly in this file.
 builder.Services.AddControllers();
-
-// Publishes a machine-readable description of every endpoint at
-// /openapi/v1.json, so tools can discover what this API offers.
 builder.Services.AddOpenApi();
 
 
-// The dividing line. Everything registered above is now built into a real,
-// running application.
+// The dividing line.
 var app = builder.Build();
 
 
 // ---- HALF 2: what happens to each request --------------------------------
-//
-// These run IN ORDER for every single request, before your code does.
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-// If someone arrives on http, send them to https instead.
 app.UseHttpsRedirection();
-
-// Checks permissions. Nothing is protected yet, so this does nothing today.
 app.UseAuthorization();
-
-// "If a request matches a controller, send it there."
 app.MapControllers();
 
 
 // ---- THE ENDPOINTS -------------------------------------------------------
 
-// The simplest possible endpoint.
-//
-//   "/health"  - the path someone asks for
-//   () => ...  - the function to run when they do
-//
-// The object it returns is turned into JSON automatically. There is no
-// step where anyone writes "{" or "}".
-//
-// A health endpoint is the first thing most APIs get: something that can be
-// asked "are you alive?" without touching a database or needing a login.
+// Alive check. Answerable without a database or a login, which is why it is
+// the first endpoint most APIs get.
 app.MapGet("/health", () => new { status = "ok" });
 
 
-// Opens the port and waits. This line does not finish while the app lives.
+// The league table, as JSON.
+//
+// EVERYTHING INSIDE THIS FUNCTION IS BUILT FRESH, PER REQUEST.
+// Three users hitting this at once get three separate Tournament objects,
+// three separate Lists, three separate everything. Nothing is shared, so
+// nothing can be corrupted by another request running at the same moment.
+// See docs/concepts/concurrency-and-threads.md.
+app.MapGet("/standings", () =>
+{
+    Tournament league = BuildLeague();
+
+    // StandingsTable, Tournament, Team, Match all come from Esports.Core -
+    // the exact same classes the console app uses. Only the front door
+    // differs: that one prints, this one returns JSON.
+    List<TeamStanding> table = StandingsTable.Build(league.Teams, league.Matches);
+
+    // Shape the answer rather than returning TeamStanding directly.
+    //
+    // WHY: TeamStanding holds a whole Team object, which holds its players,
+    // which hold their ratings. Returning it would send the entire object
+    // graph down the wire - far more than a table needs, and it would change
+    // shape every time the domain changes. The caller should not be coupled
+    // to the internals of our classes.
+    //
+    // `Select` is map, from Day 7. Each row becomes a small flat object.
+    return table.Select((row, index) => new
+    {
+        position = index + 1,
+        team = row.Team.Tag,
+        name = row.Team.Name,
+        played = row.Played,
+        won = row.Won,
+        drawn = row.Drawn,
+        lost = row.Lost,
+        gamesWon = row.GamesWon,
+        gamesLost = row.GamesLost,
+        gameDifference = row.GameDifference,
+        points = row.Points
+    });
+});
+
+
 app.Run();
+
+
+// ---- BUILDING THE DATA ---------------------------------------------------
+//
+// Hardcoded, on purpose, and temporary. There is no database yet, so every
+// request builds the same four teams and replays the same six matches.
+//
+// The Random is seeded, so the results are identical every time - otherwise
+// refreshing the page would show a different table and you could not tell a
+// real change from noise.
+//
+// This whole function disappears around Day 10, replaced by a database read.
+static Tournament BuildLeague()
+{
+    Team t1 = MakeTeam("T1", "T1", 1847, 1791, 1823);
+    Team gen = MakeTeam("Gen.G", "GEN", 1792, 1760, 1744);
+    Team hle = MakeTeam("Hanwha", "HLE", 1755, 1730, 1718);
+    Team dk = MakeTeam("Dplus", "DK", 1740, 1712, 1699);
+
+    Tournament league = new Tournament("LCK Spring", new RoundRobinFormat());
+
+    foreach (Team team in new[] { t1, gen, hle, dk })
+    {
+        league.Register(team);
+    }
+
+    league.GenerateMatches();
+
+    Random rng = new Random(42);
+
+    foreach (Match m in league.Matches)
+    {
+        m.Start();
+        m.RecordResult(rng.Next(0, 4), rng.Next(0, 4));
+    }
+
+    return league;
+}
+
+static Team MakeTeam(string name, string tag, params int[] ratings)
+{
+    Team team = new Team(name, tag);
+
+    for (int i = 0; i < ratings.Length; i++)
+    {
+        team.AddPlayer(new Player($"{tag}-p{i + 1}", ratings[i]));
+    }
+
+    return team;
+}

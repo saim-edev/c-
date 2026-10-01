@@ -2,3 +2,6 @@
 
 ### Is the API alive?
 GET {{host}}/health
+
+### The league table
+GET {{host}}/standings

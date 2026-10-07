@@ -8,6 +8,8 @@
 // of them, and MatchState.InProgres (typo) is a build error rather than a bug
 // you find in production.
 
+namespace Esports.Core;
+
 public enum MatchState
 {
     // Fixture exists, nobody has played yet.

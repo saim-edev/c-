@@ -35,6 +35,12 @@
 //  WHY HLE IS SECOND: 1 win + 1 draw = 4 points, ahead of T1's single win.
 // ============================================================================
 
+// Esports.Core is a separate PROJECT (wired in the .csproj) and a separate
+// NAMESPACE. The project reference says "I may use code from there"; this
+// line says WHICH group of names. C# needs both - unlike JavaScript, you
+// never import a file, you name a namespace.
+using Esports.Core;
+
 
 // ---- four teams, in seed order (strongest first) ----
 

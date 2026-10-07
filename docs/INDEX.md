@@ -35,7 +35,7 @@ One row per day. Filled in as each day completes.
 | 5 | Interfaces: one call, two different answers | [day-05](days/day-05-interfaces-and-polymorphism.md) | `day-05` | `Tournament`, `interface`, polymorphism, `IReadOnlyList<T>` |
 | 6 | Abstract classes: shared code that can't be skipped | [day-06](days/day-06-abstract-classes.md) | `day-06` | `abstract`, `override`, `protected`, template method |
 | 7 | A league table, and LINQ | [day-07](days/day-07-standings-and-linq.md) | `day-07` | `Where`, `Select`, `ToList`, `Count`, `Sum`, `OrderByDescending`, laziness |
-| 8 | Functions as values | — | — | delegates, lambdas, LINQ, events, async intro |
+| 8 | The API, and splitting the code in two | [day-08](days/day-08-the-api-and-esports-core.md) | `day-08` | `MapGet`, route params, 400 vs 404, class library, namespaces |
 | 9 | Kestrel and the life of a request | — | — | HTTP, middleware, routing, the 23-step journey |
 | 10 | DI, configuration, and Neon | — | — | DI lifetimes, options, user-secrets, Npgsql |
 | 11 | EF Core and your first migration | — | — | `DbContext`, change tracker, migrations |

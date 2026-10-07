@@ -5,3 +5,12 @@ GET {{host}}/health
 
 ### The league table
 GET {{host}}/standings
+
+### League fixtures (everyone plays everyone)
+GET {{host}}/matches/league
+
+### Knockout fixtures (seeded, round one only)
+GET {{host}}/matches/knockout
+
+### An unknown format - should come back 400, not 404
+GET {{host}}/matches/banana

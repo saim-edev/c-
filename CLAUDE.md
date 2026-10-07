@@ -151,7 +151,14 @@ plain fenced block:
 
 Treat every tool call as invisible. If it is not in the prose, he did not see it.
 
-**8. End the chunk with a stop.** One runnable thing, its real output, and a check-in.
+**8. Do NOT commit or push unless asked.** Saim reviews changes in VS Code's Source
+Control panel, which only shows **pending** work. Committing immediately empties that
+panel, so he never sees anything arrive and has repeatedly asked where the changes went.
+
+Leave edits uncommitted. Say what changed and which files. He commits when he has
+looked. Commit only when he says so — "commit", "push", "ship it".
+
+**9. End the chunk with a stop.** One runnable thing, its real output, and a check-in.
 Do not chain "and then we also..." onto the end.
 
 **If a chunk feels satisfying to write, it is probably too big.** The urge to finish the

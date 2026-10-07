@@ -164,3 +164,23 @@ nothing. `await` makes the thread return to the pool and resume later, possibly 
 
 **`Task`** — an object meaning "an answer that isn't here yet". **Not a thread** —
 nobody is running anything while a `Task` is pending. C#'s `Promise`.
+
+**Class library** — a project with no `<OutputType>Exe</OutputType>`, so it produces a
+`.dll` and nothing else. No entry point, cannot be run. Exists only to be referenced by
+programs that can.
+
+**Namespace** — a label on a group of classes, written `namespace Esports.Core;`.
+Unrelated to files or folders. `using Esports.Core;` means "when I write `Team`, also
+look in that group". **C# cannot import a file** — only a namespace.
+
+**`.csproj`** — the project file. C#'s `package.json`. `PackageReference` is a NuGet
+dependency (like npm); `ProjectReference` is another project in the same repo.
+
+**Kestrel** — the web server that lives *inside* your app. There is no separate server
+to install; `app.Run()` makes your program the web server.
+
+**Route parameter** — `{format}` in `"/matches/{format}"`. Whatever the caller puts
+there arrives as an argument, already typed. You never parse a URL by hand.
+
+**Anonymous object** — `new { status = "ok" }` with no type name. A shape used once, no
+class needed. Like a JavaScript object literal.

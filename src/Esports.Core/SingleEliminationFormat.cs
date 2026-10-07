@@ -3,6 +3,8 @@
 // Inherits the same shared validation as RoundRobinFormat, then adds one
 // rule of its own that no other format needs.
 
+namespace Esports.Core;
+
 public class SingleEliminationFormat : TournamentFormat
 {
     public override string Name => "Single elimination";

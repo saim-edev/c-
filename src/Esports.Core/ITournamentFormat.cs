@@ -13,6 +13,8 @@
 // will ever be written. With it, Tournament holds "some format" and never
 // learns which one.
 
+namespace Esports.Core;
+
 public interface ITournamentFormat
 {
     // No body. An interface declares, it does not implement.

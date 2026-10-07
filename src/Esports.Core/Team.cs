@@ -1,5 +1,7 @@
 // A team is a name, a tag, and the players on its roster.
 
+namespace Esports.Core;
+
 public class Team
 {
     // ---- DATA ----

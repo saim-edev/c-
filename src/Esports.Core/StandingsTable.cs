@@ -4,6 +4,8 @@
 // counters - 75 lines. The version below does the same work in about 20, and
 // says what it means rather than how to do it.
 
+namespace Esports.Core;
+
 public static class StandingsTable
 {
     public static List<TeamStanding> Build(

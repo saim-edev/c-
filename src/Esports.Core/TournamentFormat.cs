@@ -9,6 +9,8 @@
 // nothing FORCED a new format to include it - someone would eventually
 // write one and forget. An interface could not help: it holds no code.
 
+namespace Esports.Core;
+
 public abstract class TournamentFormat : ITournamentFormat
 {
     // `abstract` on a member = no body here, and every class that inherits

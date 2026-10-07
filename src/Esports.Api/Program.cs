@@ -12,6 +12,12 @@
 //    AFTER Build()   -  what happens to every request that arrives.
 // ============================================================================
 
+// Esports.Core is a separate PROJECT (wired in the .csproj) and a separate
+// NAMESPACE. The project reference says "I may use code from there"; this
+// line says WHICH group of names. C# needs both - unlike JavaScript, you
+// never import a file, you name a namespace.
+using Esports.Core;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,7 +63,7 @@ app.MapGet("/health", () => new { status = "ok" });
 // See docs/concepts/concurrency-and-threads.md.
 app.MapGet("/standings", () =>
 {
-    Tournament league = BuildLeague();
+    Tournament league = BuildTournament(new RoundRobinFormat());
 
     // StandingsTable, Tournament, Team, Match all come from Esports.Core -
     // the exact same classes the console app uses. Only the front door
@@ -90,6 +96,58 @@ app.MapGet("/standings", () =>
 });
 
 
+// The fixtures for a tournament, as JSON.
+//
+// NEW HERE: {format} in the path is a ROUTE PARAMETER. Whatever the caller
+// puts there arrives as the `format` argument below. One endpoint, many
+// answers:
+//
+//    GET /matches/league     ->  format == "league"
+//    GET /matches/knockout   ->  format == "knockout"
+//
+// Nobody parses the URL by hand. The framework matches the pattern, pulls
+// the piece out, and hands it over already typed as a string.
+app.MapGet("/matches/{format}", (string format) =>
+{
+    // Pick the format object from what the caller asked for.
+    // ToLower() so "League", "LEAGUE" and "league" all work - the caller
+    // should not have to guess our capitalisation.
+    ITournamentFormat chosen = format.ToLower() switch
+    {
+        "league" => new RoundRobinFormat(),
+        "knockout" => new SingleEliminationFormat(),
+
+        // The catch-all arm. Returning null here rather than throwing,
+        // because an unknown format is the CALLER's mistake, not a crash -
+        // it should come back as a clear 400, which is what happens below.
+        _ => null
+    };
+
+    if (chosen is null)
+    {
+        // Results.BadRequest sends HTTP 400 with a body explaining why.
+        // Compare with the 404 an unmatched path gets: 404 means "no such
+        // endpoint", 400 means "right endpoint, wrong input".
+        return Results.BadRequest(new
+        {
+            error = $"Unknown format '{format}'",
+            allowed = new[] { "league", "knockout" }
+        });
+    }
+
+    Tournament tournament = BuildTournament(chosen);
+
+    return Results.Ok(tournament.Matches.Select(m => new
+    {
+        home = m.HomeTeam.Tag,
+        away = m.AwayTeam.Tag,
+        state = m.State.ToString(),
+        score = m.Score?.ToString(),
+        winner = m.Winner?.Tag
+    }));
+});
+
+
 app.Run();
 
 
@@ -103,14 +161,18 @@ app.Run();
 // real change from noise.
 //
 // This whole function disappears around Day 10, replaced by a database read.
-static Tournament BuildLeague()
+//
+// It now takes the format as an argument rather than hardcoding RoundRobin,
+// so the same builder serves both endpoints. Tournament never learns which
+// format it got - the Day 5 lesson, still holding.
+static Tournament BuildTournament(ITournamentFormat format)
 {
     Team t1 = MakeTeam("T1", "T1", 1847, 1791, 1823);
     Team gen = MakeTeam("Gen.G", "GEN", 1792, 1760, 1744);
     Team hle = MakeTeam("Hanwha", "HLE", 1755, 1730, 1718);
     Team dk = MakeTeam("Dplus", "DK", 1740, 1712, 1699);
 
-    Tournament league = new Tournament("LCK Spring", new RoundRobinFormat());
+    Tournament league = new Tournament("LCK Spring", format);
 
     foreach (Team team in new[] { t1, gen, hle, dk })
     {
@@ -119,6 +181,9 @@ static Tournament BuildLeague()
 
     league.GenerateMatches();
 
+    // Seeded, so the same "random" results every time. Without this,
+    // refreshing the page would show a different table and you could not
+    // tell a real change from noise.
     Random rng = new Random(42);
 
     foreach (Match m in league.Matches)

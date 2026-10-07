@@ -1,6 +1,8 @@
 // A tournament holds teams and fixtures. It does NOT know how fixtures are
 // worked out - it hands that job to whatever format it was handed.
 
+namespace Esports.Core;
+
 public class Tournament
 {
     // ---- DATA ----

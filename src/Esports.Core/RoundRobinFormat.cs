@@ -6,6 +6,8 @@
 // Compare with yesterday's `: ITournamentFormat`, which brought nothing and
 // only demanded. A base class gives AND demands.
 
+namespace Esports.Core;
+
 public class RoundRobinFormat : TournamentFormat
 {
     // `override` = "I am supplying the body the base class left empty".

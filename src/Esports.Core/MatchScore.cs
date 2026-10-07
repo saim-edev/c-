@@ -20,6 +20,8 @@
 // another way to reach an invalid value. WithHome/WithAway below replace it
 // and re-validate.
 
+namespace Esports.Core;
+
 public record MatchScore
 {
     // Get-only, set in the private constructor. Nothing outside can change

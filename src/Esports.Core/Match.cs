@@ -1,5 +1,7 @@
 // A match pairs two teams and moves through a fixed lifecycle.
 
+namespace Esports.Core;
+
 public class Match
 {
     // ---- DATA ----

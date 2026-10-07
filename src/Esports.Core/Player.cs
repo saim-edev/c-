@@ -2,6 +2,8 @@
 // Writing this creates a new TYPE, the same way `string` and `int` are types.
 // It does not create any actual player yet - it's the shape, not the thing.
 
+namespace Esports.Core;
+
 public class Player
 {
     // ---- DATA ----

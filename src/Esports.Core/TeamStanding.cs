@@ -8,6 +8,8 @@
 // never stored and updated. That means it cannot drift out of sync with the
 // results, which is a whole class of bug avoided.
 
+namespace Esports.Core;
+
 public record TeamStanding(
     Team Team,
     int Played,

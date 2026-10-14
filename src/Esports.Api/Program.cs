@@ -74,25 +74,22 @@ app.MapGet("/health", () => new { status = "ok" });
 // three separate Lists, three separate everything. Nothing is shared, so
 // nothing can be corrupted by another request running at the same moment.
 // See docs/concepts/concurrency-and-threads.md.
-app.MapGet("/standings", () =>
+app.MapGet("/standings", async (EsportsDbContext db) =>
 {
-    Tournament league = BuildTournament(new RoundRobinFormat());
+    Tournament? league = await BuildTournamentAsync(db, new RoundRobinFormat());
 
-    // StandingsTable, Tournament, Team, Match all come from Esports.Core -
-    // the exact same classes the console app uses. Only the front door
-    // differs: that one prints, this one returns JSON.
+    if (league is null)
+    {
+        return Results.BadRequest(new
+        {
+            error = "Not enough teams to run a league",
+            hint = "POST /teams to add some"
+        });
+    }
+
     List<TeamStanding> table = StandingsTable.Build(league.Teams, league.Matches);
 
-    // Shape the answer rather than returning TeamStanding directly.
-    //
-    // WHY: TeamStanding holds a whole Team object, which holds its players,
-    // which hold their ratings. Returning it would send the entire object
-    // graph down the wire - far more than a table needs, and it would change
-    // shape every time the domain changes. The caller should not be coupled
-    // to the internals of our classes.
-    //
-    // `Select` is map, from Day 7. Each row becomes a small flat object.
-    return table.Select((row, index) => new
+    return Results.Ok(table.Select((row, index) => new
     {
         position = index + 1,
         team = row.Team.Tag,
@@ -105,7 +102,7 @@ app.MapGet("/standings", () =>
         gamesLost = row.GamesLost,
         gameDifference = row.GameDifference,
         points = row.Points
-    });
+    }));
 });
 
 
@@ -120,7 +117,7 @@ app.MapGet("/standings", () =>
 //
 // Nobody parses the URL by hand. The framework matches the pattern, pulls
 // the piece out, and hands it over already typed as a string.
-app.MapGet("/matches/{format}", (string format) =>
+app.MapGet("/matches/{format}", async (string format, EsportsDbContext db) =>
 {
     // Pick the format object from what the caller asked for.
     // ToLower() so "League", "LEAGUE" and "league" all work - the caller
@@ -148,7 +145,16 @@ app.MapGet("/matches/{format}", (string format) =>
         });
     }
 
-    Tournament tournament = BuildTournament(chosen);
+    Tournament? tournament = await BuildTournamentAsync(db, chosen);
+
+    if (tournament is null)
+    {
+        return Results.BadRequest(new
+        {
+            error = "Not enough teams",
+            hint = "POST /teams to add some"
+        });
+    }
 
     return Results.Ok(tournament.Matches.Select(m => new
     {
@@ -281,58 +287,53 @@ app.MapGet("/teams", async (EsportsDbContext db) =>
 app.Run();
 
 
-// ---- BUILDING THE DATA ---------------------------------------------------
+// ---- BUILDING A TOURNAMENT FROM THE DATABASE ----
 //
-// Hardcoded, on purpose, and temporary. There is no database yet, so every
-// request builds the same four teams and replays the same six matches.
+// The four hardcoded teams are gone. Teams now come from Neon, which means
+// POST /teams actually changes what /standings returns.
 //
-// The Random is seeded, so the results are identical every time - otherwise
-// refreshing the page would show a different table and you could not tell a
-// real change from noise.
+// STILL FAKE: the results. Matches are not persisted yet, so each request
+// generates the fixtures and simulates scores with a seeded Random. That is
+// the next step, and until then this function is half real.
 //
-// This whole function disappears around Day 10, replaced by a database read.
-//
-// It now takes the format as an argument rather than hardcoding RoundRobin,
-// so the same builder serves both endpoints. Tournament never learns which
-// format it got - the Day 5 lesson, still holding.
-static Tournament BuildTournament(ITournamentFormat format)
+// `async Task<Tournament?>` - async because it reads the database, and the
+// `?` because there may not be enough teams to run anything.
+static async Task<Tournament?> BuildTournamentAsync(
+    EsportsDbContext db,
+    ITournamentFormat format)
 {
-    Team t1 = MakeTeam("T1", "T1", 1847, 1791, 1823);
-    Team gen = MakeTeam("Gen.G", "GEN", 1792, 1760, 1744);
-    Team hle = MakeTeam("Hanwha", "HLE", 1755, 1730, 1718);
-    Team dk = MakeTeam("Dplus", "DK", 1740, 1712, 1699);
+    // THE REAL READ. OrderBy runs on the database, not in C#.
+    List<Team> teams = await db.Teams
+        .OrderBy(t => t.Id)
+        .ToListAsync();
 
-    Tournament league = new Tournament("LCK Spring", format);
-
-    foreach (Team team in new[] { t1, gen, hle, dk })
+    // Every format needs at least two teams, and single elimination needs an
+    // even number. Checking here means the caller gets a clear answer rather
+    // than an exception from deep inside Core.
+    if (teams.Count < 2)
     {
-        league.Register(team);
+        return null;
     }
 
-    league.GenerateMatches();
+    Tournament tournament = new Tournament("LCK Spring", format);
 
-    // Seeded, so the same "random" results every time. Without this,
-    // refreshing the page would show a different table and you could not
-    // tell a real change from noise.
+    foreach (Team team in teams)
+    {
+        tournament.Register(team);
+    }
+
+    tournament.GenerateMatches();
+
+    // Seeded, so the same teams always produce the same scores. Without this
+    // the table would reshuffle on every refresh and you could not tell a
+    // real change from noise.
     Random rng = new Random(42);
 
-    foreach (Match m in league.Matches)
+    foreach (Match m in tournament.Matches)
     {
         m.Start();
         m.RecordResult(rng.Next(0, 4), rng.Next(0, 4));
     }
 
-    return league;
-}
-
-static Team MakeTeam(string name, string tag, params int[] ratings)
-{
-    Team team = new Team(name, tag);
-
-    for (int i = 0; i < ratings.Length; i++)
-    {
-        team.AddPlayer(new Player($"{tag}-p{i + 1}", ratings[i]));
-    }
-
-    return team;
+    return tournament;
 }

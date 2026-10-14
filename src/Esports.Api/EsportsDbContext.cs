@@ -39,6 +39,9 @@ public class EsportsDbContext : DbContext
     // and run on the database rather than in C#.
     public DbSet<Team> Teams => Set<Team>();
 
+    // A second table. Without this line EF has no idea Player exists.
+    public DbSet<Player> Players => Set<Player>();
+
     // ---- HOW THEY MAP TO COLUMNS ----
     //
     // Called once, when EF first works out the shape of the database.
@@ -69,6 +72,37 @@ public class EsportsDbContext : DbContext
             // see it - there is no public property exposing it, which has
             // been true since Day 2. So nothing to configure here yet.
             // Relationships are the next step; one new idea at a time.
+        });
+
+        modelBuilder.Entity<Player>(player =>
+        {
+            player.HasKey(p => p.Id);
+
+            player.Property(p => p.GamerTag).HasMaxLength(50).IsRequired();
+
+            // THE RELATIONSHIP, spelled out:
+            //
+            //   one Player HasOne Team
+            //   that Team WithMany players
+            //   joined on the TeamId column
+            //
+            // WithMany() is empty because Team has no public collection of
+            // players for EF to fill - _players is private and always has
+            // been. The relationship still works; EF just cannot populate
+            // the other direction.
+            player.HasOne(p => p.Team)
+                  .WithMany()
+                  .HasForeignKey(p => p.TeamId)
+
+            // What happens to players when their team is deleted?
+            //
+            //   Cascade  - delete the players too
+            //   Restrict - refuse to delete the team      <- this
+            //   SetNull  - orphan the players
+            //
+            // Restrict is the safe default: deleting a team should be a
+            // deliberate act, not something that silently removes people.
+                  .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

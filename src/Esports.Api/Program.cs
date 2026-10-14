@@ -283,6 +283,60 @@ app.MapGet("/teams", async (EsportsDbContext db) =>
     return Results.Ok(teams);
 });
 
+// ---- PLAYERS: the first endpoints across a relationship ----
+
+// Add a player TO a team.
+//
+// The team id is in the URL, not the body. That is the usual REST shape for
+// "a thing that belongs to another thing":
+//
+//    POST /teams/1/players   {"gamerTag":"Faker","rating":1847}
+//         ^^^^^^^^           which team
+//                 ^^^^^^^    what we are creating inside it
+app.MapPost("/teams/{teamId:int}/players", async (
+    int teamId,
+    CreatePlayerRequest request,
+    EsportsDbContext db) =>
+{
+    // Check the team exists BEFORE inserting. The foreign key would reject a
+    // bad id anyway, but the caller would get a database error rather than a
+    // clear 404. Fail in the place that can explain itself.
+    //
+    // AnyAsync asks the DATABASE "does a row match?" - it does not load the
+    // team. SELECT EXISTS, not SELECT *.
+    bool teamExists = await db.Teams.AnyAsync(t => t.Id == teamId);
+
+    if (!teamExists)
+    {
+        return Results.NotFound(new { error = $"No team with id {teamId}" });
+    }
+
+    Player player = new Player(request.GamerTag, request.Rating, teamId);
+
+    db.Players.Add(player);
+    await db.SaveChangesAsync();
+
+    return Results.Created(
+        $"/teams/{teamId}/players/{player.Id}",
+        new PlayerResponse(player.Id, player.GamerTag, player.Rating, player.TeamId));
+});
+
+
+// The players on a team.
+//
+// The Where runs on the DATABASE, using the index EF created on TeamId.
+// With ten thousand players, only this team's rows cross the network.
+app.MapGet("/teams/{teamId:int}/players", async (int teamId, EsportsDbContext db) =>
+{
+    List<PlayerResponse> players = await db.Players
+        .Where(p => p.TeamId == teamId)
+        .OrderByDescending(p => p.Rating)
+        .Select(p => new PlayerResponse(p.Id, p.GamerTag, p.Rating, p.TeamId))
+        .ToListAsync();
+
+    return Results.Ok(players);
+});
+
 
 app.Run();
 

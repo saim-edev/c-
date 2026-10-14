@@ -20,3 +20,7 @@ public record CreateTeamRequest(string Name, string Tag);
 // The shape going back out. Same reasoning in reverse: the caller gets
 // exactly the fields chosen here, not whatever Team happens to hold today.
 public record TeamResponse(int Id, string Name, string Tag);
+
+public record CreatePlayerRequest(string GamerTag, int Rating);
+
+public record PlayerResponse(int Id, string GamerTag, int Rating, int TeamId);

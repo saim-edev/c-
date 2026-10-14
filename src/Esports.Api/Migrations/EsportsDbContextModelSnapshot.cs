@@ -21,6 +21,38 @@ namespace Esports.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Esports.Core.Player", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("GamerTag")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TeamId")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("WinRate")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("Players");
+                });
+
             modelBuilder.Entity("Esports.Core.Team", b =>
                 {
                     b.Property<int>("Id")
@@ -45,6 +77,17 @@ namespace Esports.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Teams");
+                });
+
+            modelBuilder.Entity("Esports.Core.Player", b =>
+                {
+                    b.HasOne("Esports.Core.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Team");
                 });
 #pragma warning restore 612, 618
         }

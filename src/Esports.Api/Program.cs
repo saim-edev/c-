@@ -214,6 +214,69 @@ app.MapGet("/db-check", async (IConfiguration config) =>
     }
 });
 
+// ---- TEAMS: the first endpoints backed by a real database ----
+
+// CREATE a team.
+//
+// MapPost, not MapGet. GET asks for something; POST sends something and
+// expects it to be created. The JSON body arrives as the first parameter,
+// already turned into a C# object - you never parse JSON by hand.
+//
+// TWO parameters, and neither is passed by the caller:
+//   CreateTeamRequest  <- comes from the request BODY
+//   EsportsDbContext   <- comes from the framework, same as IConfiguration
+app.MapPost("/teams", async (CreateTeamRequest request, EsportsDbContext db) =>
+{
+    // The Team constructor still enforces everything it did on Day 1. The
+    // database has not replaced those rules, it stores their results.
+    Team team = new Team(request.Name, request.Tag);
+
+    // Add() does NOT touch the database. It tells the change tracker
+    // "I intend to insert this". Nothing has left the process yet.
+    db.Teams.Add(team);
+
+    try
+    {
+        // THIS is the line that goes to Neon. Everything Add()-ed, Remove()-d
+        // or modified since the last save goes in ONE transaction - all of it
+        // lands, or none of it does.
+        await db.SaveChangesAsync();
+    }
+    catch (DbUpdateException)
+    {
+        // The unique index on Tag rejected it. Note that the check lives in
+        // the DATABASE - so this would fail even for someone typing SQL by
+        // hand, not just for this program.
+        //
+        // 409 Conflict: the request was well-formed, but it clashes with
+        // what already exists. Different from 400 (malformed input).
+        return Results.Conflict(new { error = $"A team with tag '{request.Tag}' already exists" });
+    }
+
+    // team.Id was 0 a moment ago. Postgres generated the real one on insert
+    // and EF wrote it back into the object - the aliasing from Day 2 working
+    // for you: EF held a reference to this object and changed it.
+    //
+    // 201 Created, with a Location header saying where the new thing lives.
+    return Results.Created($"/teams/{team.Id}", new TeamResponse(team.Id, team.Name, team.Tag));
+});
+
+
+// LIST the teams.
+//
+// `db.Teams` is the table as something you can query. The LINQ is Day 7's,
+// except OrderBy becomes SQL and runs on the DATABASE - a thousand rows in
+// the table, and only the ones you asked for cross the network.
+app.MapGet("/teams", async (EsportsDbContext db) =>
+{
+    List<TeamResponse> teams = await db.Teams
+        .OrderBy(t => t.Name)
+        .Select(t => new TeamResponse(t.Id, t.Name, t.Tag))
+        .ToListAsync();
+
+    return Results.Ok(teams);
+});
+
 
 app.Run();
 

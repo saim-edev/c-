@@ -17,6 +17,9 @@
 // line says WHICH group of names. C# needs both - unlike JavaScript, you
 // never import a file, you name a namespace.
 using Esports.Core;
+using Npgsql;
+using Microsoft.EntityFrameworkCore;
+using Esports.Api;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +32,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+// Register the DbContext. This is still HALF 1 - the shopping list - so
+// nothing connects to anything yet. It records: "when someone asks for an
+// EsportsDbContext, build one, pointed at Postgres, using this connection
+// string."
+//
+// UseNpgsql is the provider from Day 8's package list. EF Core itself knows
+// nothing about Postgres; this line is what teaches it the dialect.
+builder.Services.AddDbContext<EsportsDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Neon")));
 
 
 // The dividing line.
@@ -145,6 +158,60 @@ app.MapGet("/matches/{format}", (string format) =>
         score = m.Score?.ToString(),
         winner = m.Winner?.Tag
     }));
+});
+
+// Can we actually reach the database?
+//
+// This uses the RAW Postgres driver on purpose - no EF Core yet. Everything
+// EF Core does later sits on top of exactly this, so it is worth seeing once
+// before it gets hidden.
+//
+// NOTE THE `async` AND THE `await`s. This is the first real use of them, and
+// the reason is the whole of docs/concepts/concurrency-and-threads.md: the
+// database is another computer, the answer takes tens of milliseconds, and a
+// thread that sits and waits is a thread nobody else can use. `await` hands
+// the thread back to the pool until the answer arrives.
+app.MapGet("/db-check", async (IConfiguration config) =>
+{
+    // IConfiguration is handed to us. We never built it - the framework did,
+    // at startup, by merging appsettings.json, environment variables and
+    // user-secrets into one lookup. Asking for it as a parameter is how you
+    // get hold of it. (That mechanism has a name - dependency injection -
+    // and it arrives properly on Day 10.)
+    string? connectionString = config.GetConnectionString("Neon");
+
+    if (connectionString is null)
+    {
+        return Results.Problem("No connection string found. Run: dotnet user-secrets set \"ConnectionStrings:Neon\" \"...\"");
+    }
+
+    try
+    {
+        // `await using` = open it, and guarantee it gets closed even if
+        // something throws. A database connection is a real OS resource -
+        // leaving it open leaks it, and a pool has a limited number.
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync();
+
+        // SELECT version() is the cheapest possible question. It touches no
+        // tables, so it proves the connection works and nothing else.
+        await using var command = new NpgsqlCommand("SELECT version()", connection);
+        object? serverVersion = await command.ExecuteScalarAsync();
+
+        return Results.Ok(new
+        {
+            connected = true,
+            database = connection.Database,
+            server = serverVersion?.ToString()
+        });
+    }
+    catch (Exception ex)
+    {
+        // Catching broadly here ON PURPOSE: this endpoint exists to report
+        // whether the connection works, so a failure is the ANSWER, not a
+        // crash. Everywhere else, catching Exception would be wrong.
+        return Results.Problem($"{ex.GetType().Name}: {ex.Message}");
+    }
 });
 
 

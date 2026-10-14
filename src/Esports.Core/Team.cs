@@ -4,6 +4,21 @@ namespace Esports.Core;
 
 public class Team
 {
+    // ---- IDENTITY ----
+
+    // The primary key: the column that uniquely identifies this row.
+    //
+    // In memory an object is identified by WHERE it sits (Day 2). That
+    // address vanishes when the program stops, so a row has to carry its own
+    // identity IN THE DATA.
+    //
+    // EF Core finds this by name - a property called `Id` (or `TeamId`) is
+    // assumed to be the key. `private set` because nobody assigns it: the
+    // database generates it on insert, and EF writes it back into the object.
+    //
+    // 0 means "not saved yet". A real id arrives after SaveChanges().
+    public int Id { get; private set; }
+
     // ---- DATA ----
 
     public string Name { get; private set; }
